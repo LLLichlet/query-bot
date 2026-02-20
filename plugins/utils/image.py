@@ -1,0 +1,230 @@
+"""
+图片处理工具 - PIL 封装
+
+提供图片下载、处理、转换的便捷函数。
+"""
+
+import io
+import base64
+from typing import Optional, List, Tuple, Union
+from PIL import Image
+from nonebot.adapters.onebot.v11 import MessageSegment
+import logging
+
+from .network import fetch_binary_async
+
+logger = logging.getLogger("plugins.utils.image")
+
+
+def download_image_sync(url: str, timeout: int = 10) -> Optional[Image.Image]:
+    """
+    同步下载图片（使用 requests）
+    
+    注意：在异步代码中会阻塞事件循环。
+    异步代码请使用 download_image_async。
+    """
+    try:
+        import requests
+        from .network import DEFAULT_HEADERS
+        
+        response = requests.get(url, headers=DEFAULT_HEADERS, timeout=timeout)
+        response.raise_for_status()
+        return Image.open(io.BytesIO(response.content))
+    except Exception as e:
+        logger.error(f"Download failed [{url}]: {e}")
+        return None
+
+
+async def download_image_async(url: str, timeout: float = 10.0) -> Optional[Image.Image]:
+    """
+    异步下载图片（推荐）
+    
+    Args:
+        url: 图片 URL
+        timeout: 下载超时（秒）
+    
+    Returns:
+        PIL Image 对象，失败返回 None
+    
+    Example:
+        >>> img = await download_image_async("https://example.com/photo.png")
+        >>> if img:
+        ...     print(f"Size: {img.size}")
+    """
+    try:
+        data = await fetch_binary_async(url, timeout=timeout)
+        if data is None:
+            return None
+        return Image.open(io.BytesIO(data))
+    except Exception as e:
+        logger.error(f"Download failed [{url}]: {e}")
+        return None
+
+
+# 向后兼容的别名
+download_image = download_image_async
+
+
+def image_to_message(image: Image.Image, format: str = 'PNG') -> MessageSegment:
+    """
+    将 PIL Image 转为 QQ 消息图片段
+    
+    Args:
+        image: PIL Image 对象
+        format: 图片格式，默认 PNG
+    
+    Returns:
+        MessageSegment.image 对象
+    """
+    buffer = io.BytesIO()
+    image.save(buffer, format=format)
+    img_bytes = buffer.getvalue()
+    buffer.close()
+    
+    img_base64 = base64.b64encode(img_bytes).decode('utf-8')
+    return MessageSegment.image(f"base64://{img_base64}")
+
+
+def merge_images(
+    base_image: Image.Image,
+    *overlays: Image.Image
+) -> Image.Image:
+    """
+    合并多张图片（Alpha 通道合成）
+    
+    按顺序将多张图片叠加到底图上。
+    
+    Args:
+        base_image: 底图
+        *overlays: 要叠加的图片
+    
+    Returns:
+        合并后的 PIL Image 对象
+    """
+    result = base_image
+    for overlay in overlays:
+        if overlay.size != result.size:
+            overlay = overlay.resize(result.size, Image.Resampling.LANCZOS)
+        result = Image.alpha_composite(result, overlay)
+    return result
+
+
+def resize_image(
+    image: Image.Image,
+    size: Tuple[int, int],
+    keep_aspect: bool = True
+) -> Image.Image:
+    """调整图片大小"""
+    if keep_aspect:
+        image.thumbnail(size, Image.Resampling.LANCZOS)
+        return image
+    return image.resize(size, Image.Resampling.LANCZOS)
+
+
+def crop_image(
+    image: Image.Image,
+    box: Tuple[int, int, int, int]
+) -> Image.Image:
+    """
+    裁剪图片
+    
+    Args:
+        image: 原图
+        box: 裁剪区域 (left, top, right, bottom)
+    
+    Returns:
+        裁剪后的图片
+    """
+    return image.crop(box)
+
+
+def create_placeholder_image(
+    width: int = 1,
+    height: int = 1,
+    color: Tuple[int, int, int, int] = (0, 0, 0, 0)
+) -> Image.Image:
+    """创建占位图片"""
+    return Image.new('RGBA', (width, height), color)
+
+
+def compress_image(
+    image: Image.Image,
+    quality: int = 85,
+    max_size: Optional[Tuple[int, int]] = None
+) -> Image.Image:
+    """
+    压缩图片
+    
+    Args:
+        image: 原图
+        quality: JPEG 质量 (1-100)
+        max_size: 最大尺寸 (width, height)
+    
+    Returns:
+        压缩后的图片
+    """
+    result = image.copy()
+    
+    if max_size:
+        result.thumbnail(max_size, Image.Resampling.LANCZOS)
+    
+    # 转换为 RGB 以支持 JPEG 压缩
+    if result.mode in ('RGBA', 'LA', 'P'):
+        background = Image.new('RGB', result.size, (255, 255, 255))
+        if result.mode == 'P':
+            result = result.convert('RGBA')
+        if result.mode in ('RGBA', 'LA'):
+            background.paste(result, mask=result.split()[-1] if result.mode in ('RGBA', 'LA') else None)
+            result = background
+    
+    return result
+
+
+class ImageProcessor:
+    """
+    图片处理器类 - 链式操作
+    
+    支持链式调用进行多次图片处理。
+    
+    Example:
+        >>> processor = ImageProcessor(image)
+        >>> result = (processor
+        ...     .resize((800, 600))
+        ...     .crop((100, 100, 500, 400))
+        ...     .to_message())
+    """
+    
+    def __init__(self, image: Image.Image):
+        self.image = image.copy()
+    
+    def resize(self, size: Tuple[int, int], keep_aspect: bool = False) -> 'ImageProcessor':
+        """调整大小"""
+        if keep_aspect:
+            self.image.thumbnail(size, Image.Resampling.LANCZOS)
+        else:
+            self.image = self.image.resize(size, Image.Resampling.LANCZOS)
+        return self
+    
+    def crop(self, box: Tuple[int, int, int, int]) -> 'ImageProcessor':
+        """裁剪"""
+        self.image = self.image.crop(box)
+        return self
+    
+    def merge(self, *overlays: Image.Image) -> 'ImageProcessor':
+        """合并其他图片"""
+        self.image = merge_images(self.image, *overlays)
+        return self
+    
+    def compress(self, quality: int = 85) -> 'ImageProcessor':
+        """压缩"""
+        self.image = compress_image(self.image, quality)
+        return self
+    
+    def to_message(self, format: str = 'PNG') -> MessageSegment:
+        """转为 QQ 消息"""
+        return image_to_message(self.image, format)
+    
+    def save(self, path: str, format: Optional[str] = None) -> 'ImageProcessor':
+        """保存到文件"""
+        self.image.save(path, format=format)
+        return self

@@ -1,0 +1,1841 @@
+{
+    "concepts": [
+        {
+            "id": "topological_space",
+            "answer": "拓扑空间",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "定义了开集族结构的集合，是拓扑学研究的基本对象，推广了度量空间和欧几里得空间的概念"
+        },
+        {
+            "id": "topological_group",
+            "answer": "拓扑群",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "同时具有群结构和拓扑结构的数学对象，要求群的乘法和取逆运算都是连续的"
+        },
+        {
+            "id": "topological_field",
+            "answer": "拓扑域",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "带有拓扑结构的域，使得加、减、乘、除运算都是连续的"
+        },
+        {
+            "id": "topological_vector_space",
+            "answer": "拓扑线性空间",
+            "aliases": [
+                "TVS",
+                "拓扑向量空间"
+            ],
+            "category": "拓扑学",
+            "description": "带有拓扑结构的向量空间，使得向量加法和数乘运算都是连续的，泛函分析的重要研究对象"
+        },
+        {
+            "id": "topological_basis",
+            "answer": "拓扑基",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "一族开集，使得任意开集都可以表示为它们的并，用于生成拓扑结构"
+        },
+        {
+            "id": "open_set",
+            "answer": "开集",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "拓扑空间中的基本元素，满足任意并和有限交仍是开集的性质"
+        },
+        {
+            "id": "closed_set",
+            "answer": "闭集",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "开集的补集，包含其所有极限点的集合"
+        },
+        {
+            "id": "interior",
+            "answer": "内部",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "集合中所有内点组成的集合，是包含于该集合中的最大开集"
+        },
+        {
+            "id": "closure",
+            "answer": "闭包",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "包含该集合的最小闭集，由集合及其所有极限点组成"
+        },
+        {
+            "id": "boundary",
+            "answer": "边界",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "集合闭包与内部之差，即既不是内点也不是外点的点集"
+        },
+        {
+            "id": "dense_set",
+            "answer": "稠密集",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "闭包等于全空间的集合，即任意非空开集都与之相交"
+        },
+        {
+            "id": "neighborhood",
+            "answer": "邻域",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "包含某点的开集，用于描述点的局部性质和极限过程"
+        },
+        {
+            "id": "continuous_map",
+            "answer": "连续映射",
+            "aliases": [
+                "连续函数"
+            ],
+            "category": "拓扑学",
+            "description": "开集的原像仍是开集的映射，拓扑学中保持结构的基本映射"
+        },
+        {
+            "id": "homeomorphism",
+            "answer": "同胚",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "双向连续的双射映射，拓扑学中的等价关系，表明两空间拓扑结构相同"
+        },
+        {
+            "id": "open_map",
+            "answer": "开映射",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "将开集映射为开集的映射，与连续映射方向相反"
+        },
+        {
+            "id": "closed_map",
+            "answer": "闭映射",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "将闭集映射为闭集的映射"
+        },
+        {
+            "id": "quotient_map",
+            "answer": "商映射",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "满足开集原像为开集的满射，用于构造商拓扑"
+        },
+        {
+            "id": "quotient_topology",
+            "answer": "商拓扑",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "使得商映射连续的最细拓扑，通过等价关系粘合点来构造新空间"
+        },
+        {
+            "id": "subspace",
+            "answer": "子空间",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "拓扑空间的子集上继承的拓扑，开集为原空间开集与子集的交"
+        },
+        {
+            "id": "product_space",
+            "answer": "积空间",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "多个拓扑空间笛卡尔积上的拓扑，使得投影映射都连续"
+        },
+        {
+            "id": "sum_space",
+            "answer": "和空间",
+            "aliases": [
+                "不交并"
+            ],
+            "category": "拓扑学",
+            "description": "多个拓扑空间不交并上的拓扑，各空间在和中保持原有拓扑"
+        },
+        {
+            "id": "discrete_topology",
+            "answer": "离散拓扑",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "所有子集都是开集的拓扑，是最细的拓扑，空间中点彼此分离"
+        },
+        {
+            "id": "trivial_topology",
+            "answer": "密着拓扑",
+            "aliases": [
+                "平凡拓扑",
+                "最粗拓扑"
+            ],
+            "category": "拓扑学",
+            "description": "只有空集和全空间是开集的拓扑，是最粗的拓扑"
+        },
+        {
+            "id": "neighborhood_basis",
+            "answer": "邻域基",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "一点的邻域族，使得该点的任意邻域都包含其中的一个"
+        },
+        {
+            "id": "order_topology",
+            "answer": "序拓扑",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "全序集上由开区间生成的拓扑"
+        },
+        {
+            "id": "metric_space",
+            "answer": "度量空间",
+            "aliases": [
+                "距离空间",
+                "度量空间"
+            ],
+            "category": "拓扑学",
+            "description": "定义了距离函数的集合，通过开球生成拓扑，是拓扑空间的重要例子"
+        },
+        {
+            "id": "t1_space",
+            "answer": "T1空间",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "单点集都是闭集的拓扑空间，满足最弱的分离公理"
+        },
+        {
+            "id": "hausdorff_space",
+            "answer": "Hausdorff空间",
+            "aliases": [
+                "T2空间",
+                "豪斯多夫空间"
+            ],
+            "category": "拓扑学",
+            "description": "任意两点都有不相交邻域的拓扑空间，满足T2分离公理，极限唯一"
+        },
+        {
+            "id": "regular_space",
+            "answer": "正则空间",
+            "aliases": [
+                "T3空间"
+            ],
+            "category": "拓扑学",
+            "description": "T1空间且点和闭集可用开集分离的空间"
+        },
+        {
+            "id": "normal_space",
+            "answer": "正规空间",
+            "aliases": [
+                "T4空间"
+            ],
+            "category": "拓扑学",
+            "description": "T1空间且任意两个不相交闭集可用开集分离的空间，有Urysohn引理成立"
+        },
+        {
+            "id": "completely_normal_space",
+            "answer": "完全正规空间",
+            "aliases": [
+                "T5空间"
+            ],
+            "category": "拓扑学",
+            "description": "所有子空间都是正规空间的拓扑空间"
+        },
+        {
+            "id": "perfectly_normal_space",
+            "answer": "完美正规空间",
+            "aliases": [
+                "T6空间"
+            ],
+            "category": "拓扑学",
+            "description": "所有闭集都是Gδ集的正规空间"
+        },
+        {
+            "id": "g_delta_set",
+            "answer": "Gδ集",
+            "aliases": [
+                "Gdelta集"
+            ],
+            "category": "拓扑学",
+            "description": "可数个开集的交集，在完备度量空间中Gδ集完备"
+        },
+        {
+            "id": "f_sigma_set",
+            "answer": "Fσ集",
+            "aliases": [
+                "Fsigma集"
+            ],
+            "category": "拓扑学",
+            "description": "可数个闭集的并集"
+        },
+        {
+            "id": "net",
+            "answer": "网",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "定义在有向集上的映射，是序列的推广，用于描述一般拓扑空间的收敛性"
+        },
+        {
+            "id": "convergence",
+            "answer": "收敛",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "网或序列最终进入任意邻域的性质，是拓扑空间极限过程的描述"
+        },
+        {
+            "id": "uniform_topology",
+            "answer": "一致拓扑",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "由一致结构诱导的拓扑，使得一致连续映射都是连续的"
+        },
+        {
+            "id": "uniformly_continuous",
+            "answer": "一致连续",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "在一致空间上，δ只依赖于ε而不依赖于点的连续性"
+        },
+        {
+            "id": "uniform_convergence",
+            "answer": "一致收敛",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "函数列在定义域上一致地收敛到极限函数，强于逐点收敛"
+        },
+        {
+            "id": "compact",
+            "answer": "紧致",
+            "aliases": [
+                "紧"
+            ],
+            "category": "拓扑学",
+            "description": "拓扑空间的紧致性：任意开覆盖都有有限子覆盖，是数学分析中有限性概念在拓扑空间的推广"
+        },
+        {
+            "id": "sequentially_compact",
+            "answer": "序列紧致",
+            "aliases": [
+                "列紧"
+            ],
+            "category": "拓扑学",
+            "description": "任意序列都有收敛子列的性质，在度量空间中等价于紧致"
+        },
+        {
+            "id": "limit_point_compact",
+            "answer": "极限点紧致",
+            "aliases": [
+                "据点紧致"
+            ],
+            "category": "拓扑学",
+            "description": "任意无限子集都有极限点的性质，弱于紧致性"
+        },
+        {
+            "id": "compactification",
+            "answer": "紧致化",
+            "aliases": [
+                "紧化"
+            ],
+            "category": "拓扑学",
+            "description": "将非紧空间嵌入为紧空间的稠密子空间的过程"
+        },
+        {
+            "id": "one_point_compactification",
+            "answer": "单点紧致化",
+            "aliases": [
+                "单点紧化",
+                "Alexandroff紧致化"
+            ],
+            "category": "拓扑学",
+            "description": "局部紧Hausdorff空间添加一点得到的紧致化，如平面加无穷远点成球面"
+        },
+        {
+            "id": "stone_cech_compactification",
+            "answer": "Stone-Čech紧致化",
+            "aliases": [
+                "Stone-Cech紧致化",
+                "斯通切赫紧致化",
+                "斯通-切赫紧致化"
+            ],
+            "category": "拓扑学",
+            "description": "完全正则空间的最大紧致化，由Stone和Čech独立发现"
+        },
+        {
+            "id": "paracompact",
+            "answer": "仿紧致",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "任意开覆盖都有局部有限开加细的性质，度量空间都是仿紧致的"
+        },
+        {
+            "id": "locally_compact",
+            "answer": "局部紧致",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "每点都有紧邻域的性质，是紧致的局部版本"
+        },
+        {
+            "id": "sigma_compact",
+            "answer": "σ-紧致",
+            "aliases": [
+                "σ紧致",
+                "sigma紧致",
+                "可数紧致"
+            ],
+            "category": "拓扑学",
+            "description": "可数个紧子集的并，弱于紧致性"
+        },
+        {
+            "id": "connected",
+            "answer": "连通",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "不能表示为两个非空不交开集之并的拓扑空间，直观上是一整块没有分离的部分"
+        },
+        {
+            "id": "locally_connected",
+            "answer": "局部连通",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "每点都有连通邻域基的性质"
+        },
+        {
+            "id": "continuum",
+            "answer": "连续统",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "拓扑学中，连续统指紧致的连通度量空间，如实数闭区间[0,1]是最典型的例子"
+        },
+        {
+            "id": "continuum_hypothesis",
+            "answer": "连续统假设",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "关于实数集基数（连续统的势）的假设：不存在基数严格介于可数集和实数集之间的集合，由Cantor提出，Cohen证明其独立于ZFC公理系统"
+        },
+        {
+            "id": "open_cover",
+            "answer": "开覆盖",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "由开集组成的覆盖，在紧致性定义中起核心作用"
+        },
+        {
+            "id": "pasting_lemma",
+            "answer": "粘结引理",
+            "aliases": [
+                "黏结引理",
+                "粘合引理",
+                "粘贴引理"
+            ],
+            "category": "拓扑学",
+            "description": "在有限个闭集上定义的连续映射，若在交集上一致则可粘合成整体连续映射"
+        },
+        {
+            "id": "connected_sum",
+            "answer": "连通和",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "两个流形各挖去一个圆盘后粘合边界得到的曲面运算"
+        },
+        {
+            "id": "path",
+            "answer": "道路",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "从单位区间到空间的连续映射，表示两点间的连续路径"
+        },
+        {
+            "id": "first_countable",
+            "answer": "第一可数",
+            "aliases": [
+                "C1空间"
+            ],
+            "category": "拓扑学",
+            "description": "每点都有可数邻域基的拓扑空间，序列足以描述极限"
+        },
+        {
+            "id": "second_countable",
+            "answer": "第二可数",
+            "aliases": [
+                "C2空间"
+            ],
+            "category": "拓扑学",
+            "description": "有可数拓扑基的空间，蕴含可分、Lindelöf、第一可数等性质"
+        },
+        {
+            "id": "separable",
+            "answer": "可分集",
+            "aliases": [
+                "可分空间"
+            ],
+            "category": "拓扑学",
+            "description": "有可数的稠密子集的拓扑空间，第二可数空间都是可分的"
+        },
+        {
+            "id": "lindelof_space",
+            "answer": "Lindelöf空间",
+            "aliases": [
+                "Lindelof空间",
+                "林德洛夫空间"
+            ],
+            "category": "拓扑学",
+            "description": "任意开覆盖都有可数子覆盖的空间，第二可数空间都是Lindelöf的"
+        },
+        {
+            "id": "embedding",
+            "answer": "嵌入",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "空间到另一个空间的同胚于其子空间的映射"
+        },
+        {
+            "id": "immersion",
+            "answer": "浸入",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "微分拓扑中局部为嵌入的映射，切映射处处单射"
+        },
+        {
+            "id": "pointwise_convergence",
+            "answer": "点态收敛",
+            "aliases": [
+                "逐点收敛"
+            ],
+            "category": "拓扑学",
+            "description": "函数列在每一点都收敛的收敛方式，对应乘积拓扑"
+        },
+        {
+            "id": "compact_convergence",
+            "answer": "紧致收敛",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "在每个紧集上一致收敛的收敛方式"
+        },
+        {
+            "id": "urysohn_lemma",
+            "answer": "Urysohn引理",
+            "aliases": [
+                "乌雷松引理",
+                "乌瑞松引理"
+            ],
+            "category": "拓扑学",
+            "description": "正规空间中不相交闭集可用连续函数完全分离，是度量化定理的基础"
+        },
+        {
+            "id": "urysohn_metrization",
+            "answer": "Urysohn度量化定理",
+            "aliases": [
+                "乌雷松度量化定理"
+            ],
+            "category": "拓扑学",
+            "description": "第二可数的正规空间可度量化，可嵌入Hilbert立方体"
+        },
+        {
+            "id": "tychonoff_theorem",
+            "answer": "Tychonoff定理",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "任意多个紧致空间的积空间仍紧致，依赖选择公理，是点集拓扑的重要定理"
+        },
+        {
+            "id": "nagata_smirnov",
+            "answer": "Nagata-Smirnov度量化定理",
+            "aliases": [
+                "Nagata-Smirnov定理",
+                "长田定理"
+            ],
+            "category": "拓扑学",
+            "description": "拓扑空间可度量化的充要条件：正则且有σ局部有限基"
+        },
+        {
+            "id": "baire_category",
+            "answer": "Baire纲",
+            "aliases": [
+                "贝尔纲"
+            ],
+            "category": "拓扑学",
+            "description": "描述拓扑空间'大小'的分类，完备度量空间是第二纲集，在泛函分析中有重要应用"
+        },
+        {
+            "id": "peano_curve",
+            "answer": "Peano曲线",
+            "aliases": [
+                "皮亚诺曲线",
+                "填满空间的曲线"
+            ],
+            "category": "拓扑学",
+            "description": "填满单位正方形的连续曲线，由Peano发现，展示了连续映射的反直观性质"
+        },
+        {
+            "id": "manifold",
+            "answer": "流形",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "局部具有欧几里得空间性质的拓扑空间，每点都有一个邻域同胚于R^n中的开集，是微分几何和数学物理的基本研究对象"
+        },
+        {
+            "id": "compact_manifold",
+            "answer": "紧致流形",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "既是紧致的又是流形的空间，整体性质良好，在数学中研究广泛"
+        },
+        {
+            "id": "tietze_extension",
+            "answer": "Tietze扩张定理",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "正规空间的闭子集上的有界连续函数可扩张到全空间"
+        },
+        {
+            "id": "support",
+            "answer": "支集",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "函数非零点的闭包，紧支函数在分析中特别重要"
+        },
+        {
+            "id": " Whitney_embedding",
+            "answer": "嵌入定理",
+            "aliases": [
+                "Whitney嵌入定理"
+            ],
+            "category": "拓扑学",
+            "description": "n维光滑流形可光滑嵌入到R^(2n)，Whitney证明"
+        },
+        {
+            "id": "retract",
+            "answer": "收缩核",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "子空间A是X的收缩核如果存在收缩映射r:X→A使得r|A=id_A"
+        },
+        {
+            "id": "homotopy",
+            "answer": "同伦",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "两个连续映射之间的连续形变，是代数拓扑中映射等价的基本概念"
+        },
+        {
+            "id": "path_homotopy",
+            "answer": "道路同伦",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "端点固定的道路之间的同伦，用于定义基本群"
+        },
+        {
+            "id": "straight_line_homotopy",
+            "answer": "直线同伦",
+            "aliases": [],
+            "category": "拓扑学",
+            "description": "凸集中两点间道路的同伦，通过直线段连接"
+        },
+        {
+            "id": "grassmannian",
+            "answer": "Grassmann流形",
+            "aliases": [
+                "Grassmannian",
+                "格拉斯曼流形"
+            ],
+            "category": "拓扑学",
+            "description": "向量空间中所有k维子空间组成的流形，在代数几何和示性类理论中重要"
+        },
+        {
+            "id": "torus",
+            "answer": "环面",
+            "aliases": [
+                "甜甜圈",
+                "Torus"
+            ],
+            "category": "拓扑学",
+            "description": "两个圆的乘积S¹×S¹，亏格为1的可定向紧曲面，形如甜甜圈"
+        },
+        {
+            "id": "sphere",
+            "answer": "球",
+            "aliases": [
+                "球面",
+                "S^n"
+            ],
+            "category": "拓扑学",
+            "description": "n维欧氏空间中到原点距离为1的点集，是最基本的几何对象之一"
+        },
+        {
+            "id": "mobius_band",
+            "answer": "Möbius带",
+            "aliases": [
+                "Mobius带",
+                "莫比乌斯带",
+                "Mobius环",
+                "莫比乌斯环"
+            ],
+            "category": "拓扑学",
+            "description": "将纸条扭转180度后粘合得到的单侧曲面，不可定向，只有一条边界"
+        },
+        {
+            "id": "klein_bottle",
+            "answer": "Klein瓶",
+            "aliases": [
+                "克莱因瓶"
+            ],
+            "category": "拓扑学",
+            "description": "将两个Möbius带沿边界粘合得到的闭曲面，不可定向，无边界，在三维空间中自交"
+        },
+        {
+            "id": "roman_surface",
+            "answer": "罗马曲面",
+            "aliases": [
+                "Steiner曲面"
+            ],
+            "category": "拓扑学",
+            "description": "实射影平面在三维空间中的浸入，有自交线，由Steiner发现"
+        },
+        {
+            "id": "riemann_surface",
+            "answer": "Riemann曲面",
+            "aliases": [
+                "黎曼曲面"
+            ],
+            "category": "拓扑学",
+            "description": "一维复流形，用于处理多值复函数的黎曼面，是复分析和代数几何的交汇点"
+        },
+        {
+            "id": "group",
+            "answer": "群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "带有满足结合律的二元运算、单位元和每个元素都有逆元的代数结构"
+        },
+        {
+            "id": "ring",
+            "answer": "环",
+            "aliases": [],
+            "category": "代数学",
+            "description": "带有两种运算（加法和乘法）的代数结构，对加法成群，对乘法满足结合律和分配律"
+        },
+        {
+            "id": "field",
+            "answer": "域",
+            "aliases": [],
+            "category": "代数学",
+            "description": "非零元都可逆的交换环，可以进行加减乘除四则运算的代数结构"
+        },
+        {
+            "id": "module",
+            "answer": "模",
+            "aliases": [
+                "R-模",
+                "R模"
+            ],
+            "category": "代数学",
+            "description": "环上的向量空间，群带有环的线性作用，是线性代数的推广"
+        },
+        {
+            "id": "algebra",
+            "answer": "代数",
+            "aliases": [],
+            "category": "代数学",
+            "description": "既是向量空间又是环的代数结构，乘法对加法满足双线性"
+        },
+        {
+            "id": "associative_algebra",
+            "answer": "结合代数",
+            "aliases": [],
+            "category": "代数学",
+            "description": "乘法满足结合律的代数，如矩阵代数，是李代数的对偶概念"
+        },
+        {
+            "id": "group_extension",
+            "answer": "群扩张",
+            "aliases": [],
+            "category": "代数学",
+            "description": "通过正规子群和商群构造新群的方式，用短正合列N→G→Q描述"
+        },
+        {
+            "id": "ring_extension",
+            "answer": "环扩张",
+            "aliases": [],
+            "category": "代数学",
+            "description": "一个环包含另一个环作为子环，研究整元素和代数整数的工具"
+        },
+        {
+            "id": "field_extension",
+            "answer": "域扩张",
+            "aliases": [],
+            "category": "代数学",
+            "description": "一个域包含另一个域作为子域，是Galois理论和代数数论的核心研究对象"
+        },
+        {
+            "id": "subgroup",
+            "answer": "子群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "群的子集，对原群运算也构成群，Lagrange定理限制其阶数"
+        },
+        {
+            "id": "normal_subgroup",
+            "answer": "正规子群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "在共轭作用下不变的子群，可以构造商群，是同态的核"
+        },
+        {
+            "id": "quotient_group",
+            "answer": "商群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "由正规子群的陪集构成的群，群同态的像"
+        },
+        {
+            "id": "first_isomorphism_theorem",
+            "answer": "第一同构定理",
+            "aliases": [],
+            "category": "代数学",
+            "description": "群（或环）的同态像同构于定义域模去核，最基本重要的同构定理"
+        },
+        {
+            "id": "second_isomorphism_theorem",
+            "answer": "第二同构定理",
+            "aliases": [],
+            "category": "代数学",
+            "description": "子群H和正规子群N，HN/N ≅ H/(H∩N)，描述交与积的关系"
+        },
+        {
+            "id": "third_isomorphism_theorem",
+            "answer": "第三同构定理",
+            "aliases": [],
+            "category": "代数学",
+            "description": "若K⊂N都是G的正规子群，则(G/K)/(N/K) ≅ G/N，商群的商群仍是商群"
+        },
+        {
+            "id": "orbit",
+            "answer": "轨道",
+            "aliases": [],
+            "category": "代数学",
+            "description": "群作用下点的轨迹，群作用的基本研究对象，轨道-稳定子定理的核心"
+        },
+        {
+            "id": "stabilizer",
+            "answer": "稳定子",
+            "aliases": [
+                "稳定子群"
+            ],
+            "category": "代数学",
+            "description": "群作用中保持某点不动的元素集合，是该点的稳定子群"
+        },
+        {
+            "id": "centralizer",
+            "answer": "中心化子",
+            "aliases": [],
+            "category": "代数学",
+            "description": "与给定子集元素都可交换的群元素集合"
+        },
+        {
+            "id": "normalizer",
+            "answer": "正规化子",
+            "aliases": [],
+            "category": "代数学",
+            "description": "使给定子集在共轭作用下不变的元素集合，是包含该子集为正规子群的最大子群"
+        },
+        {
+            "id": "fixed_point",
+            "answer": "不动点",
+            "aliases": [],
+            "category": "代数学",
+            "description": "群作用下保持不变的点，在Burnside引理和不动点定理中重要"
+        },
+        {
+            "id": "orbit_stabilizer_theorem",
+            "answer": "轨道-稳定子定理",
+            "aliases": [],
+            "category": "代数学",
+            "description": "轨道大小等于稳定子的指数，|Orb(x)| = [G:Stab(x)]，有限群论基本工具"
+        },
+        {
+            "id": "group_action",
+            "answer": "群作用",
+            "aliases": [],
+            "category": "代数学",
+            "description": "群到集合上置换群的同态，描述群对集合的对称性作用"
+        },
+        {
+            "id": "simple_group",
+            "answer": "单群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "没有非平凡正规子群的群，是群论的原子，有限单群分类定理是数学巨著"
+        },
+        {
+            "id": "solvable_group",
+            "answer": "可解群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "导列最终达到平凡群的群，多项式方程根式可解的Galois群是可解群"
+        },
+        {
+            "id": "burnside_lemma",
+            "answer": "Burnside引理",
+            "aliases": [],
+            "category": "代数学",
+            "description": "群作用下轨道数等于群元素不动点数的平均，计数组合学的重要工具"
+        },
+        {
+            "id": "classification_finite_simple_groups",
+            "answer": "有限单群分类定理",
+            "aliases": [],
+            "category": "代数学",
+            "description": "所有有限单群都同构于18个无穷族之一或26个散在群之一，数学史上最庞大的证明"
+        },
+        {
+            "id": "monster_group",
+            "answer": "魔群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "最大的散在单群，阶数约8×10⁵³，与模形式和顶点算子代数有深刻联系"
+        },
+        {
+            "id": "baby_monster",
+            "answer": "小魔群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "第二大的散在单群，由Fischer发现，与魔群有密切关系"
+        },
+        {
+            "id": "permutation_group",
+            "answer": "置换群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "由集合上置换构成的群，每个群都可嵌入置换群（Cayley定理）"
+        },
+        {
+            "id": "symmetric_group",
+            "answer": "对称群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "n个元素上所有置换构成的群Sn，是群论和表示论的基本对象"
+        },
+        {
+            "id": "alternating_group",
+            "answer": "交错群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "对称群中偶置换构成的子群An，n≥5时是单群"
+        },
+        {
+            "id": "cyclic_group",
+            "answer": "循环群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "由一个元素生成的群，同构于整数加群或其商群Zn，是最简单的群"
+        },
+        {
+            "id": "abelian_group",
+            "answer": "Abel群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "运算满足交换律的群，有限生成Abel群有完全的结构分类"
+        },
+        {
+            "id": "semigroup",
+            "answer": "半群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "只满足结合律的代数结构，比群更弱，在自动机理论和组合数学中出现"
+        },
+        {
+            "id": "monoid",
+            "answer": "幺半群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "有单位元的半群，无逆元要求，在范畴论和计算机科学中重要"
+        },
+        {
+            "id": "free_group",
+            "answer": "自由群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "由一组生成元自由生成的群，没有非平凡关系，任何群都是自由群的商"
+        },
+        {
+            "id": "free_monoid",
+            "answer": "自由幺半群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "由字母表上所有有限字（包括空字）构成的幺半群，运算为字连接"
+        },
+        {
+            "id": "monstrous_moonshine",
+            "answer": "魔群月光猜想",
+            "aliases": [],
+            "category": "代数学",
+            "description": "魔群与模函数j函数的傅里叶系数之间的神秘联系，由Borcherds证明获菲尔兹奖"
+        },
+        {
+            "id": "domain",
+            "answer": "整环",
+            "aliases": [
+                "无零因子环"
+            ],
+            "category": "代数学",
+            "description": "无零因子的交换环，可以发展整除理论和因子分解"
+        },
+        {
+            "id": "division_ring",
+            "answer": "除环",
+            "aliases": [
+                "体"
+            ],
+            "category": "代数学",
+            "description": "非零元都可逆的环（不必交换），Wedderburn定理：有限除环必是域"
+        },
+        {
+            "id": "quaternion",
+            "answer": "四元数",
+            "aliases": [],
+            "category": "代数学",
+            "description": "Hamilton发现的非交换除环，形式为a+bi+cj+dk，是复数的非交换推广"
+        },
+        {
+            "id": "splitting_field",
+            "answer": "分裂域",
+            "aliases": [],
+            "category": "代数学",
+            "description": "多项式分解为一次因子之积的最小域扩张，Galois理论的核心对象"
+        },
+        {
+            "id": "algebraic_extension",
+            "answer": "代数扩张",
+            "aliases": [],
+            "category": "代数学",
+            "description": "扩张中每个元素都是基域上的代数元，是域扩张的基本类型"
+        },
+        {
+            "id": "transcendental_extension",
+            "answer": "超越扩张",
+            "aliases": [],
+            "category": "代数学",
+            "description": "包含超越元的域扩张，如Q(π)/Q，对应有理函数域"
+        },
+        {
+            "id": "polynomial_ring",
+            "answer": "多项式环",
+            "aliases": [],
+            "category": "代数学",
+            "description": "系数在环中的多项式构成的环，Noether环上多项式环仍Noether"
+        },
+        {
+            "id": "cyclotomic_field",
+            "answer": "分圆域",
+            "aliases": [],
+            "category": "代数学",
+            "description": "添加单位根到有理数域得到的域扩张，是代数数论的重要研究对象"
+        },
+        {
+            "id": "residue_class_ring",
+            "answer": "剩余类环",
+            "aliases": [],
+            "category": "代数学",
+            "description": "整数模n的剩余类构成的环，同构于Z/nZ，是有限环的基本例子"
+        },
+        {
+            "id": "klein_four_group",
+            "answer": "Klein群",
+            "aliases": [
+                "克莱因群",
+                "V4"
+            ],
+            "category": "代数学",
+            "description": "阶为4的非循环Abel群，同构于Z2×Z2，是最小的非循环群"
+        },
+        {
+            "id": "ufd",
+            "answer": "唯一因子分解整环",
+            "aliases": [
+                "UFD",
+                "Gauss整环",
+                "高斯整环",
+                "因子分解整环"
+            ],
+            "category": "代数学",
+            "description": "每个非零元都可唯一分解为素元乘积的整环，如整数环、域上多项式环"
+        },
+        {
+            "id": "euclidean_domain",
+            "answer": "Euclid整环",
+            "aliases": [
+                "欧几里得整环",
+                "ED"
+            ],
+            "category": "代数学",
+            "description": "可进行带余除法的整环，有辗转相除法，必是唯一因子分解整环"
+        },
+        {
+            "id": "ideal",
+            "answer": "理想",
+            "aliases": [],
+            "category": "代数学",
+            "description": "环的子集，对加减法封闭且吸收环中元素的乘法，是商环的核"
+        },
+        {
+            "id": "prime_ideal",
+            "answer": "素理想",
+            "aliases": [],
+            "category": "代数学",
+            "description": "商环是整环的理想，推广了素数的概念"
+        },
+        {
+            "id": "principal_ideal",
+            "answer": "主理想",
+            "aliases": [],
+            "category": "代数学",
+            "description": "由一个元素生成的理想，是最简单的理想类型"
+        },
+        {
+            "id": "maximal_ideal",
+            "answer": "极大理想",
+            "aliases": [],
+            "category": "代数学",
+            "description": "不被其他真理想包含的理想，商环是域，在有单位元的环中必存在"
+        },
+        {
+            "id": "pid",
+            "answer": "主理想整环",
+            "aliases": [
+                "PID"
+            ],
+            "category": "代数学",
+            "description": "每个理想都是主理想的整环，是唯一因子分解整环，有限生成模有结构定理"
+        },
+        {
+            "id": "algebraically_closed_field",
+            "answer": "代数闭域",
+            "aliases": [],
+            "category": "代数学",
+            "description": "每个非常数多项式都有根的域，复数域是代数闭域，每个域都有代数闭包"
+        },
+        {
+            "id": "finite_field",
+            "answer": "有限域",
+            "aliases": [],
+            "category": "代数学",
+            "description": "元素个数有限的域，必为pn个元素，在同构意义下唯一，记为Fq或GF(q)"
+        },
+        {
+            "id": "galois_extension",
+            "answer": "Galois扩张",
+            "aliases": [
+                "伽罗瓦扩张"
+            ],
+            "category": "代数学",
+            "description": "正规且可分的代数扩张，Galois理论的核心，Galois群刻画了扩张结构"
+        },
+        {
+            "id": "galois_group",
+            "answer": "Galois群",
+            "aliases": [
+                "伽罗瓦群"
+            ],
+            "category": "代数学",
+            "description": "保持基域不动的域自同构构成的群，连接域扩张与群论的桥梁"
+        },
+        {
+            "id": "normal_extension",
+            "answer": "正规扩张",
+            "aliases": [],
+            "category": "代数学",
+            "description": "不可约多项式有一个根则所有根都在其中的代数扩张，是Galois扩张的条件之一"
+        },
+        {
+            "id": "separable_extension",
+            "answer": "可分扩张",
+            "aliases": [],
+            "category": "代数学",
+            "description": "每个元素的极小多项式无重根的扩张，特征0的域上所有代数扩张都可分"
+        },
+        {
+            "id": "primitive_element",
+            "answer": "本原元素",
+            "aliases": [],
+            "category": "代数学",
+            "description": "使扩张由单元素生成的元素，有限可分扩张都有本原元素（本原元素定理）"
+        },
+        {
+            "id": "finitely_generated_extension",
+            "answer": "有限生成扩张",
+            "aliases": [],
+            "category": "代数学",
+            "description": "由基域添加有限个元素生成的域扩张，研究超越基和超越度"
+        },
+        {
+            "id": "algebraic_number_field",
+            "answer": "代数数域",
+            "aliases": [],
+            "category": "代数学",
+            "description": "有理数域的有限扩张，代数数论的主要研究对象，其整数环是Dedekind整环"
+        },
+        {
+            "id": "transcendental_number_field",
+            "answer": "超越数域",
+            "aliases": [],
+            "category": "代数学",
+            "description": "包含有理数域上超越元的域，如有理函数域Q(t)"
+        },
+        {
+            "id": "complete_field",
+            "answer": "完备域",
+            "aliases": [],
+            "category": "代数学",
+            "description": "每个Cauchy列都收敛的域，关于绝对值或赋值完备，如实数域、Qp"
+        },
+        {
+            "id": "hensel_lemma",
+            "answer": "Hensel引理",
+            "aliases": [],
+            "category": "代数学",
+            "description": "关于在完备局部域中提升多项式解的引理，类似牛顿迭代法，在p-adic分析中核心"
+        },
+        {
+            "id": "abel_ruffini_theorem",
+            "answer": "Abel-Ruffini定理",
+            "aliases": [],
+            "category": "代数学",
+            "description": "五次及以上一般多项式方程没有根式解，由Abel和Ruffini证明，Galois理论解释"
+        },
+        {
+            "id": "cayley_theorem",
+            "answer": "Cayley定理",
+            "aliases": [
+                "凯莱定理"
+            ],
+            "category": "代数学",
+            "description": "每个群都同构于某个对称群的子群，任何群都可实现为置换群"
+        },
+        {
+            "id": "p_group",
+            "answer": "p-群",
+            "aliases": [],
+            "category": "代数学",
+            "description": "阶为素数幂的有限群，有非平凡中心，是幂零群"
+        },
+        {
+            "id": "sylow_subgroup",
+            "answer": "Sylow子群",
+            "aliases": [
+                "Sylow p-子群",
+                "西罗子群",
+                "西罗p-子群"
+            ],
+            "category": "代数学",
+            "description": "有限群中阶为pn的最大p-子群，Sylow定理保证了存在性和共轭性"
+        },
+        {
+            "id": "sylow_theorem",
+            "answer": "Sylow定理",
+            "aliases": [
+                "西罗定理"
+            ],
+            "category": "代数学",
+            "description": "关于有限群中Sylow子群存在、共轭和个数的三个定理，有限群论的基础"
+        },
+        {
+            "id": "complete",
+            "answer": "完备",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "空间中每个Cauchy列都收敛的性质，如实数域是完备的"
+        },
+        {
+            "id": "completion",
+            "answer": "完备化",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "将不完备度量空间嵌入到完备空间的过程，如实数是有理数的完备化"
+        },
+        {
+            "id": "cauchy_sequence",
+            "answer": "Cauchy列",
+            "aliases": [
+                "基本列",
+                "柯西列"
+            ],
+            "category": "数学分析",
+            "description": "距离任意小的项最终都接近的序列，完备空间中Cauchy列必收敛"
+        },
+        {
+            "id": "cauchy_convergence_criterion",
+            "answer": "Cauchy收敛准则",
+            "aliases": [
+                "Cauchy收敛原理",
+                "柯西收敛准则"
+            ],
+            "category": "数学分析",
+            "description": "数列收敛当且仅当它是Cauchy列，在实数域中成立的充要条件"
+        },
+        {
+            "id": "epsilon_delta",
+            "answer": "ε-δ语言",
+            "aliases": [
+                "epsilon-delta语言",
+                "epsilondelta语言"
+            ],
+            "category": "数学分析",
+            "description": "Weierstrass给出的极限严格定义，用ε和δ刻画任意接近"
+        },
+        {
+            "id": "sequence",
+            "answer": "数列",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "按自然数编号的一列实数，是研究极限和收敛的基本对象"
+        },
+        {
+            "id": "function",
+            "answer": "函数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "两个集合之间的对应关系，每个定义域元素对应唯一的值域元素"
+        },
+        {
+            "id": "natural_number",
+            "answer": "自然数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "用于计数的数0,1,2,3,...，由Peano公理严格定义"
+        },
+        {
+            "id": "integer",
+            "answer": "整数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "...,-2,-1,0,1,2,...，自然数添加负数得到，构成交换环"
+        },
+        {
+            "id": "rational_number",
+            "answer": "有理数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "可以表示为两个整数之比的数，在实数中稠密但不完备"
+        },
+        {
+            "id": "real_number",
+            "answer": "实数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "有理数的完备化，具有完备性和连续性，与数轴一一对应"
+        },
+        {
+            "id": "supremum",
+            "answer": "上确界",
+            "aliases": [
+                "最小上界",
+                "sup"
+            ],
+            "category": "数学分析",
+            "description": "集合的最小上界，实数系完备性的体现，非空有上界集合必有上确界"
+        },
+        {
+            "id": "infimum",
+            "answer": "下确界",
+            "aliases": [
+                "最大下界",
+                "inf"
+            ],
+            "category": "数学分析",
+            "description": "集合的最大下界，与上确界对偶"
+        },
+        {
+            "id": "upper_bound",
+            "answer": "上界",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "大于等于集合中所有元素的数"
+        },
+        {
+            "id": "lower_bound",
+            "answer": "下界",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "小于等于集合中所有元素的数"
+        },
+        {
+            "id": "least_upper_bound_property",
+            "answer": "最小上界性",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "实数系的基本性质：非空有上界的集合必有上确界，等价于完备性"
+        },
+        {
+            "id": "dedekind_cut",
+            "answer": "Dedekind分割",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "将有理数分为上下两部分构造实数的方法，体现实数连续性"
+        },
+        {
+            "id": "dedekind_theorem",
+            "answer": "Dedekind定理",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "关于实数连续性的基本定理，Dedekind分割确定唯一的实数"
+        },
+        {
+            "id": "complex_number",
+            "answer": "复数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "形如a+bi的数，i²=-1，实数域的代数闭扩张，对应复平面"
+        },
+        {
+            "id": "divergence",
+            "answer": "发散",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "序列或函数极限不存在或不趋向于有限值的情况"
+        },
+        {
+            "id": "monotone_convergence_theorem",
+            "answer": "单调有界定理",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "单调有界数列必收敛，实数系完备性的重要体现"
+        },
+        {
+            "id": "heine_theorem",
+            "answer": "Heine定理",
+            "aliases": [
+                "归结原理"
+            ],
+            "category": "数学分析",
+            "description": "函数极限存在当且仅当对任意趋于该点的数列，函数值数列极限存在且相等"
+        },
+        {
+            "id": "series",
+            "answer": "级数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "无穷个数相加的形式，研究其收敛性和求值"
+        },
+        {
+            "id": "harmonic_series",
+            "answer": "调和级数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "Σ1/n，虽然通项趋于0但级数发散，部分和增长如ln(n)"
+        },
+        {
+            "id": "p_series",
+            "answer": "p级数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "Σ1/n^p，p>1时收敛，p≤1时发散，级数收敛判别的重要例子"
+        },
+        {
+            "id": "geometric_series",
+            "answer": "几何级数",
+            "aliases": [
+                "等比级数"
+            ],
+            "category": "数学分析",
+            "description": "Σr^n，|r|<1时收敛于1/(1-r)，最简单的收敛级数"
+        },
+        {
+            "id": "hypergeometric_function",
+            "answer": "超几何函数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "用超几何级数定义的特殊函数，包含许多初等函数和特殊函数作为特例"
+        },
+        {
+            "id": "power_series",
+            "answer": "幂级数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "形如Σanx^n的级数，在收敛半径内表示解析函数"
+        },
+        {
+            "id": "abel_theorem",
+            "answer": "Abel定理",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "幂级数在收敛区间端点收敛，则和函数在该点连续"
+        },
+        {
+            "id": "radius_of_convergence",
+            "answer": "收敛半径",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "幂级数收敛区间长度的一半，可用Cauchy-Hadamard公式计算"
+        },
+        {
+            "id": "bolzano_weierstrass_theorem",
+            "answer": "Bolzano-Weierstrass定理",
+            "aliases": [
+                "波尔查诺-魏尔斯特拉斯定理",
+                "波尔查诺魏尔斯特拉斯定理"
+            ],
+            "category": "数学分析",
+            "description": "有界数列必有收敛子列，体现实数的列紧性，等价于Heine-Borel定理"
+        },
+        {
+            "id": "heine_borel_theorem",
+            "answer": "Heine-Borel定理",
+            "aliases": [
+                "海涅-博雷尔定理",
+                "海涅博雷尔定理"
+            ],
+            "category": "数学分析",
+            "description": "实数集的子集是紧的当且仅当它是有界闭集"
+        },
+        {
+            "id": "derivative",
+            "answer": "导数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "函数在某点的瞬时变化率，几何意义为切线斜率"
+        },
+        {
+            "id": "differential",
+            "answer": "微分",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "函数的线性近似，几何意义为切线纵坐标变化量"
+        },
+        {
+            "id": "directional_derivative",
+            "answer": "方向导数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "多元函数沿某方向的瞬时变化率"
+        },
+        {
+            "id": "multivariable_differential",
+            "answer": "多元微分",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "多元函数的微分，用线性映射逼近函数变化"
+        },
+        {
+            "id": "partial_derivative",
+            "answer": "偏导数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "多元函数对某一变量的导数，固定其他变量"
+        },
+        {
+            "id": "frechet_derivative",
+            "answer": "Fréchet微分",
+            "aliases": [
+                "Frechet微分",
+                "F-微分",
+                "Fréchet导数",
+                "Frechet导数",
+                "F-导数"
+            ],
+            "category": "数学分析",
+            "description": "泛函分析中的强导数概念，用有界线性算子逼近函数变化"
+        },
+        {
+            "id": "jacobian_matrix",
+            "answer": "Jacobi矩阵",
+            "aliases": [
+                "Jacobian",
+                "雅可比矩阵"
+            ],
+            "category": "数学分析",
+            "description": "多元向量值函数的一阶偏导数构成的矩阵，行列式用于坐标变换"
+        },
+        {
+            "id": "gradient",
+            "answer": "梯度",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "多元函数偏导数组成的向量，指向函数增长最快的方向"
+        },
+        {
+            "id": "divergence",
+            "answer": "散度",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "向量场在某点的通量密度，刻画源的强弱"
+        },
+        {
+            "id": "curl",
+            "answer": "旋度",
+            "aliases": [
+                "旋转度"
+            ],
+            "category": "数学分析",
+            "description": "向量场在某点的旋转程度，刻画涡旋的强弱"
+        },
+        {
+            "id": "dini_derivative",
+            "answer": "Dini导数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "导数的推广，定义四个方向的单侧导数（上下左右）"
+        },
+        {
+            "id": "left_derivative",
+            "answer": "左导数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "函数在某点左侧的导数，用左极限定义"
+        },
+        {
+            "id": "right_derivative",
+            "answer": "右导数",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "函数在某点右侧的导数，用右极限定义"
+        },
+        {
+            "id": "taylor_formula",
+            "answer": "Taylor公式",
+            "aliases": [
+                "Taylor定理",
+                "Taylor展开",
+                "泰勒公式",
+                "泰勒展开",
+                "泰勒定理"
+            ],
+            "category": "数学分析",
+            "description": "用多项式逼近函数，含函数在某点的各阶导数信息"
+        },
+        {
+            "id": "taylor_series",
+            "answer": "Taylor级数",
+            "aliases": [
+                "泰勒级数"
+            ],
+            "category": "数学分析",
+            "description": "Taylor展开的无穷级数形式，解析函数可展开为Taylor级数"
+        },
+        {
+            "id": "lhopital_rule",
+            "answer": "l'Hopital法则",
+            "aliases": [
+                "洛必达法则",
+                "LHospital法则"
+            ],
+            "category": "数学分析",
+            "description": "用导数比求不定式极限的方法，适用于0/0或∞/∞型"
+        },
+        {
+            "id": "fermat_lemma",
+            "answer": "Fermat引理",
+            "aliases": [
+                "费马引理"
+            ],
+            "category": "数学分析",
+            "description": "可导函数在极值点导数为零，是极值的必要条件"
+        },
+        {
+            "id": "rolle_theorem",
+            "answer": "Rolle中值定理",
+            "aliases": [
+                "罗尔中值定理"
+            ],
+            "category": "数学分析",
+            "description": "端点值相等的可导函数，内部有导数为零的点"
+        },
+        {
+            "id": "cauchy_mean_value",
+            "answer": "Cauchy中值定理",
+            "aliases": [
+                "柯西中值定理"
+            ],
+            "category": "数学分析",
+            "description": "两个函数在区间端点函数值差的比等于某点导数的比"
+        },
+        {
+            "id": "lagrange_mean_value",
+            "answer": "Lagrange中值定理",
+            "aliases": [
+                "拉格朗日中值定理"
+            ],
+            "category": "数学分析",
+            "description": "函数在区间上的平均变化率等于某点的瞬时变化率，微分学基本定理"
+        },
+        {
+            "id": "extreme_point",
+            "answer": "极值点",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "函数在该点邻域内取最大或最小值的点"
+        },
+        {
+            "id": "mean_value_inequality",
+            "answer": "中值不等式",
+            "aliases": [
+                "MVI"
+            ],
+            "category": "数学分析",
+            "description": "用导数有界性估计函数值差的不等式，Lagrange中值定理的推论"
+        },
+        {
+            "id": "riemann_integral",
+            "answer": "Riemann积分",
+            "aliases": [
+                "定积分",
+                "R-积分",
+                "黎曼积分"
+            ],
+            "category": "数学分析",
+            "description": "用Riemann和极限定义的积分，几何意义为曲线下面积"
+        },
+        {
+            "id": "darboux_sum",
+            "answer": "Darboux和",
+            "aliases": [
+                "达布和"
+            ],
+            "category": "数学分析",
+            "description": "用上下确界定义的积分和，与Riemann积分等价，用于可积性判定"
+        },
+        {
+            "id": "improper_integral",
+            "answer": "瑕积分",
+            "aliases": [
+                "反常积分"
+            ],
+            "category": "数学分析",
+            "description": "被积函数无界或积分区间无界的积分，用极限定义"
+        },
+        {
+            "id": "infinite_integral",
+            "answer": "无穷积分",
+            "aliases": [
+                "无穷限积分"
+            ],
+            "category": "数学分析",
+            "description": "积分限为无穷的积分，用极限定义"
+        },
+        {
+            "id": "multiple_integral",
+            "answer": "重积分",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "多元函数在区域上的积分，几何意义为高维体积"
+        },
+        {
+            "id": "double_integral",
+            "answer": "二重积分",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "二元函数在平面区域上的积分，几何意义为曲顶柱体体积"
+        },
+        {
+            "id": "triple_integral",
+            "answer": "三重积分",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "三元函数在空间区域上的积分，几何意义为四维超体积"
+        },
+        {
+            "id": "contour_integral",
+            "answer": "围道积分",
+            "aliases": [
+                "环积分",
+                "线积分",
+                "曲线积分"
+            ],
+            "category": "数学分析",
+            "description": "沿闭合曲线的积分，复分析中重要，与留数定理联系"
+        },
+        {
+            "id": "volume_integral",
+            "answer": "体积分",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "在立体区域上的积分，物理中常用"
+        },
+        {
+            "id": "gamma_function",
+            "answer": "Γ函数",
+            "aliases": [
+                "Gamma函数",
+                "伽马函数"
+            ],
+            "category": "数学分析",
+            "description": "阶乘在实数和复数上的推广，Γ(n)=(n-1)!，重要的特殊函数"
+        },
+        {
+            "id": "beta_function",
+            "answer": "Beta函数",
+            "aliases": [
+                "贝塔函数",
+                "B函数"
+            ],
+            "category": "数学分析",
+            "description": "用积分定义的特殊函数，与Gamma函数关系密切"
+        },
+        {
+            "id": "limit_superior",
+            "answer": "上极限",
+            "aliases": [
+                "limsup"
+            ],
+            "category": "数学分析",
+            "description": "序列所有收敛子列极限的最大值"
+        },
+        {
+            "id": "limit_inferior",
+            "answer": "下极限",
+            "aliases": [
+                "liminf"
+            ],
+            "category": "数学分析",
+            "description": "序列所有收敛子列极限的最小值"
+        },
+        {
+            "id": "left_limit",
+            "answer": "左极限",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "函数从左侧趋近某点的极限"
+        },
+        {
+            "id": "right_limit",
+            "answer": "右极限",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "函数从右侧趋近某点的极限"
+        },
+        {
+            "id": "leibniz_formula",
+            "answer": "Leibniz公式",
+            "aliases": [
+                "莱布尼茨公式"
+            ],
+            "category": "数学分析",
+            "description": "两个函数乘积的高阶导数公式，类似二项式展开"
+        },
+        {
+            "id": "newton_leibniz_formula",
+            "answer": "Newton-Leibniz公式",
+            "aliases": [
+                "牛莱公式",
+                "Newton-Leibniz定理"
+            ],
+            "category": "数学分析",
+            "description": "定积分等于原函数在端点的值之差，连接微分与积分的基本公式"
+        },
+        {
+            "id": "fundamental_theorem_calculus",
+            "answer": "微积分基本定理",
+            "aliases": [],
+            "category": "数学分析",
+            "description": "揭示微分与积分互逆关系的定理，是微积分的核心"
+        },
+        {
+            "id": "leibniz_rule",
+            "answer": "Leibniz法则",
+            "aliases": [
+                "莱布尼茨法则",
+                "积分号下求导"
+            ],
+            "category": "数学分析",
+            "description": "含参积分关于参数求导的法则，可交换积分与微分次序"
+        }
+    ]
+}

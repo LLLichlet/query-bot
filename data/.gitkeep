@@ -1,0 +1,2 @@
+# 保持 data 目录结构
+# 实际数据文件（如 banned.json）不会被提交到 Git

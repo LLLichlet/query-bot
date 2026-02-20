@@ -1,0 +1,45 @@
+[tool.nonebot]
+adapters = [{ name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11" }]
+plugins = []
+plugin_dirs = ["plugins"]
+
+[tool.nonebot.driver]
+host = "127.0.0.1"
+port = 8080
+fastapi_reload = true
+
+[project]
+name = "query-bot"
+version = "2.2.1"
+description = "多功能查询聊天机器人"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "nonebot2[fastapi]>=2.4.0",
+    "nonebot-adapter-onebot>=2.4.0",
+    "nonebot-plugin-apscheduler>=0.3.0",
+    "openai>=1.0.0",
+    "pydantic-settings>=2.0.0",
+    "httpx>=0.24.0",
+    "requests>=2.31.0",
+    "pillow>=10.0.0",
+    "psutil>=5.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "nb-cli>=1.2.0",
+    "watchfiles>=0.20.0",
+]
+
+[tool.pdm]
+# PDM 包管理器配置
+
+[tool.pdm.scripts]
+# 快捷命令
+bot = "nb run"
+reload = "nb run --reload"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
