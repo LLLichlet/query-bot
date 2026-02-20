@@ -17,7 +17,7 @@
 ## 功能特性
 
 - **数学定义查询**: 基于 DeepSeek API 的数学概念解释（香蕉空间风格）
-- **数学谜题**: 20 Questions 游戏模式，支持 325+ 数学概念
+- **数学谜题**: 是/否回答提问模式，支持 325+ 数学概念
 - **随机回复**: 基于上下文的 AI 群聊回复，可配置触发概率
 - **午时已到**: 俄罗斯轮盘赌禁言小游戏
 - **PJSK 谱面**: 随机 Project Sekai 游戏谱面获取
@@ -336,7 +336,7 @@ A QQ group chat bot based on the NoneBot2 framework, providing mathematical know
 ## Features
 
 - **Math Definition Query**: Mathematical concept explanations powered by DeepSeek API (Banana Space style)
-- **Math Puzzle**: 20 Questions game mode with 325+ mathematical concepts
+- **Math Puzzle**: Yes/No answer-asking mode with 325+ mathematical concepts
 - **Random Reply**: Context-aware AI group chat replies with configurable trigger probability
 - **High Noon**: Russian roulette mute game
 - **PJSK Charts**: Random Project Sekai game chart images
