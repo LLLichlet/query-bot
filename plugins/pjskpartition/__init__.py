@@ -145,13 +145,13 @@ class PJSKHandler(PluginHandler):
         
         # 检查是否下载成功
         if bg is None or bar is None or data is None:
-            await self.reply("查不到这个谱面哦")
+            await self.reply("网络太差了呜呜呜")
             return
         
         # 合并图片
         result = merge_images(bg, data, bar)
         if result is None:
-            await self.reply("查不到这个谱面哦")
+            await self.reply("哎呀图片合并失败了")
             return
         
         # 发送图片
