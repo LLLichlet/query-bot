@@ -76,7 +76,7 @@ class ConceptRepository:
         if self._initialized:
             return
         
-        data_file = os.path.join("prompts", "math_concepts.json")
+        data_file = os.path.join(os.path.dirname(__file__), "..", "..", "prompts", "math_concepts.json")
         if os.path.exists(data_file):
             try:
                 with open(data_file, 'r', encoding='utf-8') as f:
