@@ -1,7 +1,12 @@
 """
 数学谜题插件 - 游戏服务
 
-实现游戏逻辑和 AI 交互。
+实现游戏逻辑和 AI 交互，支持玩家提问和猜测答案。
+
+使用方式:
+    >>> from plugins.math_soup.service import MathPuzzleService
+    >>> service = MathPuzzleService.get_instance()
+    >>> result = await service.start_game(123456)
 """
 
 from typing import Optional
@@ -20,18 +25,75 @@ from .repository import ConceptRepository
 
 
 class MathPuzzleService(GameServiceBase[MathPuzzleState]):
-    """数学谜题游戏服务"""
+    """
+    数学谜题游戏服务
+    
+    实现 20 Questions 风格的数学概念猜测游戏逻辑，
+    包括开始游戏、提问、猜测、结束游戏等功能。
+    
+    Attributes:
+        _repository: 概念题库仓库，用于获取随机概念
+        
+    Example:
+        >>> service = MathPuzzleService.get_instance()
+        >>> result = service.create_game(123456)
+        >>> if result:
+        ...     print(f"游戏开始，概念: {result.concept.answer}")
+    """
     
     def __init__(self) -> None:
+        """
+        初始化游戏服务
+        
+        创建题库仓库实例，实际游戏状态管理由基类处理。
+        
+        Example:
+            >>> service = MathPuzzleService.get_instance()
+            >>> service._repository is not None
+            True
+        """
         super().__init__()
         self._repository = ConceptRepository()
     
     def _get_ai_service(self) -> Optional[AIServiceProtocol]:
-        """获取 AI 服务"""
+        """
+        获取 AI 服务
+        
+        通过 ServiceLocator 获取已注册的 AI 服务实例。
+        
+        Returns:
+            AIServiceProtocol 实例，如果未注册则返回 None
+            
+        Example:
+            >>> service = MathPuzzleService.get_instance()
+            >>> ai = service._get_ai_service()
+            >>> if ai and ai.is_available:
+            ...     print("AI 服务可用")
+        """
         return ServiceLocator.get(AIServiceProtocol)
     
     def create_game(self, group_id: int, **kwargs) -> MathPuzzleState:
-        """创建新游戏状态"""
+        """
+        创建新游戏状态
+        
+        从题库随机选择一个概念，创建该群聊的游戏状态。
+        
+        Args:
+            group_id: 群聊 ID
+            **kwargs: 额外参数（保留给基类使用）
+            
+        Returns:
+            新创建的 MathPuzzleState 实例
+            
+        Raises:
+            RuntimeError: 题库为空时抛出
+            
+        Example:
+            >>> service = MathPuzzleService.get_instance()
+            >>> state = service.create_game(123456)
+            >>> state.group_id
+            123456
+        """
         concept = self._repository.get_random_concept()
         if concept is None:
             raise RuntimeError("题库为空，无法开始游戏")
@@ -44,7 +106,23 @@ class MathPuzzleService(GameServiceBase[MathPuzzleState]):
         )
     
     async def ask_question(self, group_id: int, question_text: str) -> Result[str]:
-        """处理玩家提问并返回答复"""
+        """
+        处理玩家提问并返回答复
+        
+        使用 AI 判断玩家问题与答案概念的关系，返回"是"、"否"或"不确定"。
+        
+        Args:
+            group_id: 群聊 ID
+            question_text: 玩家的问题文本
+            
+        Returns:
+            Result[str]: 成功时返回"是"/"否"/"不确定"，失败时返回错误信息
+            
+        Example:
+            >>> result = await service.ask_question(123456, "这是一个数论概念吗？")
+            >>> if result.is_success:
+            ...     print(result.value)  # "是" 或 "否" 或 "不确定"
+        """
         game = self.get_game(group_id)
         if game is None or not game.is_active:
             return Result.fail("没有进行中的游戏")
@@ -98,7 +176,20 @@ class MathPuzzleService(GameServiceBase[MathPuzzleState]):
         return Result.success(final_answer)
     
     def _get_default_judge_prompt(self) -> str:
-        """获取默认判定提示词"""
+        """
+        获取默认判定提示词
+        
+        当外部提示词文件不可用时，返回内置的 AI 判定提示词模板。
+        
+        Returns:
+            默认的提示词模板字符串，包含 {answer}, {category}, {aliases}, {question} 占位符
+            
+        Example:
+            >>> service = MathPuzzleService.get_instance()
+            >>> prompt = service._get_default_judge_prompt()
+            >>> "{answer}" in prompt
+            True
+        """
         return """你是一个数学谜题游戏的裁判。玩家正在猜测一个数学概念。
 
 ## 当前概念
@@ -117,7 +208,28 @@ class MathPuzzleService(GameServiceBase[MathPuzzleState]):
 只回答"是"、"否"或"不确定"，不要解释。"""
     
     async def make_guess(self, group_id: int, guess_text: str) -> Result[dict]:
-        """处理玩家猜测答案"""
+        """
+        处理玩家猜测答案
+        
+        检查玩家猜测是否与正确答案匹配，支持别名匹配和相似度计算。
+        
+        Args:
+            group_id: 群聊 ID
+            guess_text: 玩家的猜测文本
+            
+        Returns:
+            Result[dict]: 包含猜测结果的字典
+                - correct: 是否猜对 (bool)
+                - answer: 正确答案（猜对时）
+                - description: 概念描述（猜对时）
+                - category: 概念分类（猜对时）
+                - similarity: 相似度分数 (float)
+                
+        Example:
+            >>> result = await service.make_guess(123456, "费马大定理")
+            >>> if result.is_success and result.value["correct"]:
+            ...     print("猜对了！")
+        """
         game = self.get_game(group_id)
         if game is None or not game.is_active:
             return Result.fail("没有进行中的游戏")
@@ -165,7 +277,25 @@ class MathPuzzleService(GameServiceBase[MathPuzzleState]):
             })
     
     def get_game_info(self, group_id: int) -> Optional[dict]:
-        """获取游戏信息"""
+        """
+        获取游戏信息
+        
+        返回指定群聊当前游戏的状态信息。
+        
+        Args:
+            group_id: 群聊 ID
+            
+        Returns:
+            游戏信息字典，无游戏时返回 None
+            - question_count: 提问次数
+            - guess_count: 猜测次数
+            - concept_answer: 正确答案（调试用）
+            
+        Example:
+            >>> info = service.get_game_info(123456)
+            >>> if info:
+            ...     print(f"已提问 {info['question_count']} 次")
+        """
         game = self.get_game(group_id)
         if game is None:
             return None

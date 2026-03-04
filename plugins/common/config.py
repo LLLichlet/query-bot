@@ -103,6 +103,14 @@ class PluginConfig(BaseSettings):
         default=True,
         description="复读功能开关"
     )
+    mcmod_search_enabled: bool = Field(
+        default=True,
+        description="MCMOD模组查询功能开关"
+    )
+    mcmod_capture_selectors: str = Field(
+        default="class-title,class-text-top",
+        description="MCMOD要截图的CSS选择器，逗号分隔"
+    )
     
     # ==================== 调试配置 ====================
     debug_mode: bool = Field(
@@ -217,6 +225,11 @@ class PluginConfig(BaseSettings):
         default=10,
         gt=0,
         description="午时已到游戏每群最大参与人数"
+    )
+    buffer_interval_ms: float = Field(
+        default=800.0,
+        gt=0,
+        description="消息发送缓冲间隔（毫秒），用于防风控"
     )
     
     # ==================== AI 参数 - 数学海龟汤 ====================

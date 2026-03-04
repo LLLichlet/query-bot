@@ -1,12 +1,23 @@
 """
 PJSK 谱面插件
 
-支持：
-- /chart - 随机谱面
-- /chart <编号> - 指定编号谱面（如 /chart 001）
-- /chart <歌曲名> - 搜索歌曲谱面（如 /chart Tell Your World）
+Project Sekai（世界计划）游戏谱面图片查询。
+支持随机谱面、指定编号或歌曲名搜索。
 
-使用新架构（PluginHandler + CommandReceiver）重构
+触发方式:
+    - /chart - 随机谱面
+    - /chart <编号> - 指定编号谱面（如 /chart 001）
+    - /chart <歌曲名> - 搜索歌曲谱面（如 /chart Tell Your World）
+    - /chart [编号/歌曲名] [难度] - 指定难度（exp/mst/apd）
+
+配置:
+    QUERY_PJSKPARTTION_ENABLED=True/False    # 功能开关
+
+数据来源:
+    谱面图片从 sdvx.in 获取
+
+使用方式:
+    /chart [编号/歌曲名] [难度(exp/mst/apd)]
 """
 import random
 import asyncio
@@ -25,6 +36,7 @@ except ImportError:
         def __init__(self, **kwargs): pass
 
 from plugins.common import PluginHandler, CommandReceiver
+from plugins.common.base import Result
 
 try:
     from plugins.utils import download_image, image_to_message, merge_images, calculate_similarity
@@ -34,7 +46,18 @@ except ImportError:
 
 
 class PJSKHandler(PluginHandler):
-    """PJSK 谱面处理器"""
+    """
+    PJSK 谱面处理器
+    
+    Attributes:
+        name: 插件名称
+        description: 功能描述
+        command: 命令名称
+        aliases: 命令别名集合
+        feature_name: 功能开关名
+        priority: 命令处理优先级
+        ERROR_MESSAGES: 错误消息映射
+    """
     
     name = "PJSK谱面"
     description = "pjsk谱面相关功能，支持随机、指定编号、搜索歌曲名"
@@ -43,9 +66,24 @@ class PJSKHandler(PluginHandler):
     feature_name = "pjskpartiton"
     priority = 10
     
+    ERROR_MESSAGES = {
+        "utils_not_available": "Image processing module not available",
+        "invalid_song_id": "Song ID must be between 1 and 639",
+        "song_not_found": "Song not found",
+        "download_failed": "Network error, please try again later",
+        "merge_failed": "Failed to merge images",
+    }
+    
     def __init__(self):
         super().__init__()
-        self.songs_data = self._load_songs_data()
+        self._songs_data = None
+    
+    @property
+    def songs_data(self) -> dict:
+        """懒加载歌曲数据"""
+        if self._songs_data is None:
+            self._songs_data = self._load_songs_data()
+        return self._songs_data
     
     def _load_songs_data(self) -> dict:
         """加载歌曲数据"""
@@ -54,118 +92,127 @@ class PJSKHandler(PluginHandler):
             with open(json_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
             songs = data.get("songs", [])
-            id_to_name = {s["id_str"]: s["name"] for s in songs}
             return {
                 "songs": songs,
-                "id_to_name": id_to_name,
+                "id_to_name": {s["id_str"]: s["name"] for s in songs},
             }
         except Exception:
             return {"songs": [], "id_to_name": {}}
     
-    def _find_song_by_name(self, query: str) -> tuple[str, str] | None:
-        """根据歌曲名搜索，返回相似度最高的 (id_str, name)"""
+    def _find_song(self, query: str) -> tuple[str, str] | None:
+        """根据歌曲名搜索"""
         query = query.lower()
         best_match = None
         best_score = 0.0
         
         for song in self.songs_data.get("songs", []):
-            song_name = song["name"]
-            # 精确包含优先
-            if query == song_name.lower():
-                return song["id_str"], song_name
-            # 相似度匹配
+            name = song["name"]
+            if query == name.lower():
+                return song["id_str"], name
+            
             if UTILS_AVAILABLE:
-                score = calculate_similarity(query, song_name.lower())
+                score = calculate_similarity(query, name.lower())
                 if score > best_score:
                     best_score = score
-                    best_match = (song["id_str"], song_name)
+                    best_match = (song["id_str"], name)
         
-        # 相似度阈值 0.4
         if best_match and best_score > 0.4:
             return best_match
         return None
     
     async def handle(self, event: MessageEvent, args: str) -> None:
-        """处理谱面命令"""
+        """
+        处理谱面命令
+        
+        Args:
+            event: 消息事件对象
+            args: 用户输入的参数（编号/歌曲名/难度）
+        """
+        # 检查环境
         if not UTILS_AVAILABLE:
-            await self.reply("图片处理模块未加载")
+            await self.reply(self.get_error_message("utils_not_available"))
             return
         
-        song_id = None
-        song_name = None
-        difficulty = None
-        
         # 解析参数
-        if args:
-            args = args.strip()
-            
-            # 检查是否包含难度参数 (exp/mst/apd)
-            diff_match = re.search(r'\s+(exp|mst|apd)$', args, re.IGNORECASE)
-            if diff_match:
-                difficulty = diff_match.group(1).lower()
-                args = args[:diff_match.start()].strip()
-            
-            # 判断是编号还是歌曲名
-            if args.isdigit():
-                # 数字编号
-                num = int(args)
-                if 1 <= num <= 639:
-                    song_id = f"{num:03d}"
-                    song_name = self.songs_data.get("id_to_name", {}).get(song_id)
-                else:
-                    await self.reply("查不到这个谱面哦")
-                    return
-            else:
-                # 歌曲名搜索
-                result = self._find_song_by_name(args)
-                if result:
-                    song_id, song_name = result
-                else:
-                    await self.reply("查不到这个谱面哦")
-                    return
-        else:
-            # 随机模式
-            song_id = f"{random.randint(1, 639):03d}"
-            song_name = self.songs_data.get("id_to_name", {}).get(song_id, "未知歌曲")
+        song_id, song_name, difficulty = await self._parse_args(args)
+        if song_id is None:
+            return
         
-        # 默认难度（随机时不选apd，因为不是所有歌曲都有）
-        if not difficulty:
-            difficulty = random.choice(["exp", "mst"])
+        # 发送歌曲名（非随机模式）
+        if args and song_name:
+            await self.reply(song_name)
         
-        # 先发送歌曲名
-        if args:
-            await self.reply(f"{song_name}")
-        
-        # 构建 URL 并下载图片
+        # 下载图片
         bg_url = f"https://sdvx.in/prsk/bg/{song_id}bg.png"
         bar_url = f"https://sdvx.in/prsk/bg/{song_id}bar.png"
         data_url = f"https://sdvx.in/prsk/obj/data{song_id}{difficulty}.png"
         
-        bg, bar, data = await self._download_images(bg_url, bar_url, data_url)
+        try:
+            bg, bar, data = await asyncio.gather(
+                download_image(bg_url),
+                download_image(bar_url),
+                download_image(data_url),
+            )
+        except Exception:
+            await self.reply(self.get_error_message("download_failed"))
+            return
         
-        # 检查是否下载成功
         if bg is None or bar is None or data is None:
-            await self.reply("网络太差了呜呜呜")
+            await self.reply(self.get_error_message("download_failed"))
             return
         
         # 合并图片
-        result = merge_images(bg, data, bar)
-        if result is None:
-            await self.reply("哎呀图片合并失败了")
+        merged = merge_images(bg, data, bar)
+        if merged is None:
+            await self.reply(self.get_error_message("merge_failed"))
             return
         
         # 发送图片
-        msg = image_to_message(result)
-        await self.send(msg, finish=True)
+        try:
+            msg = image_to_message(merged)
+            await self.send(msg, finish=True)
+        except Exception:
+            await self.reply(self.get_error_message("merge_failed"))
     
-    async def _download_images(self, bg_url: str, bar_url: str, data_url: str):
-        """并发下载三张图片"""
-        tasks = [
-            download_image(bg_url),
-            download_image(bar_url),
-            download_image(data_url),
-        ]
-        return await asyncio.gather(*tasks)
+    async def _parse_args(self, args: str) -> tuple[str | None, str | None, str]:
+        """
+        解析命令参数
+        
+        Returns:
+            (song_id, song_name, difficulty) 或 (None, None, "")
+        """
+        if not args:
+            # 随机模式
+            song_id = f"{random.randint(1, 639):03d}"
+            song_name = self.songs_data.get("id_to_name", {}).get(song_id, "Unknown")
+            return song_id, song_name, random.choice(["exp", "mst"])
+        
+        args = args.strip()
+        
+        # 检查难度参数
+        diff_match = re.search(r'\s+(exp|mst|apd)$', args, re.IGNORECASE)
+        difficulty = diff_match.group(1).lower() if diff_match else random.choice(["exp", "mst"])
+        if diff_match:
+            args = args[:diff_match.start()].strip()
+        
+        # 判断是编号还是歌曲名
+        if args.isdigit():
+            num = int(args)
+            if 1 <= num <= 639:
+                song_id = f"{num:03d}"
+                song_name = self.songs_data.get("id_to_name", {}).get(song_id)
+                return song_id, song_name, difficulty
+            else:
+                await self.reply(self.get_error_message("invalid_song_id"))
+                return None, None, ""
+        else:
+            # 歌曲名搜索
+            result = self._find_song(args)
+            if result:
+                return result[0], result[1], difficulty
+            else:
+                await self.reply(self.get_error_message("song_not_found"))
+                return None, None, ""
 
 
 # 创建处理器和接收器
@@ -179,5 +226,5 @@ if NONEBOT_AVAILABLE:
         name=handler.name,
         description=handler.description,
         usage="/chart [编号/歌曲名] [难度(exp/mst/apd)]",
-        extra={"author": "Lichlet", "version": "2.3.1"}
+        extra={"author": "Lichlet", "version": "2.4.0"}
     )

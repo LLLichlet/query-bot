@@ -3,10 +3,8 @@
 
 管理员功能：查看和控制各功能开关状态、用户管理。
 使用一次性令牌验证，令牌通过私聊 "/申请令牌" 获取，5分钟内有效。
-
-使用新架构（PluginHandler + CommandReceiver）重构
 """
-from typing import List, Tuple, Set
+from typing import List, Tuple
 
 try:
     from nonebot.adapters.onebot.v11 import MessageEvent, PrivateMessageEvent
@@ -28,6 +26,7 @@ from plugins.common import (
     SystemMonitorProtocol,
     config,
 )
+from plugins.common.base import Result
 
 
 class RequestTokenHandler(PluginHandler):
@@ -41,32 +40,36 @@ class RequestTokenHandler(PluginHandler):
     feature_name = None
     hidden_in_help = True
     
+    ERROR_MESSAGES = {
+        "not_private_chat": "Please send this command in private chat",
+        "not_admin": "You don't have admin permission",
+        "token_service_unavailable": "Token service unavailable",
+    }
+    
     async def handle(self, event: MessageEvent, args: str) -> None:
         """处理令牌申请（仅私聊）"""
         if not isinstance(event, PrivateMessageEvent):
-            await self.reply("请私聊机器人申请令牌")
+            await self.reply(self.get_error_message("not_private_chat"))
             return
         
         user_id = event.user_id
         
-        # 检查管理员权限
         if user_id not in config.admin_user_ids_set:
-            await self.reply("您没有管理员权限")
+            await self.reply(self.get_error_message("not_admin"))
             return
         
-        # 通过协议层获取令牌服务
         token_service = ServiceLocator.get(TokenServiceProtocol)
         if token_service is None:
-            await self.reply("令牌服务不可用")
+            await self.reply(self.get_error_message("token_service_unavailable"))
             return
         
         token = token_service.generate_token(user_id)
         
         await self.send(
-            f"您的操作令牌: {token}\n"
-            f"有效期: 5分钟\n"
-            f"使用方式: 在群内发送 \"admin {token} [操作]\"\n"
-            f"可用操作: toggle(开关)/ban(拉黑)/unban(解封)/status(状态)/system(系统)",
+            f"Your token: {token}\n"
+            f"Valid for: 5 minutes\n"
+            f"Usage: Send \"admin {token} [operation]\" in group\n"
+            f"Available: toggle/ban/unban/status/system",
             finish=True
         )
 
@@ -90,16 +93,36 @@ class StatusControlHandler(PluginHandler):
         ("math_soup", "数学谜题", "数学谜"),
     ]
     
+    ERROR_MESSAGES = {
+        "not_admin": "You don't have admin permission",
+        "token_service_unavailable": "Token service unavailable",
+        "token_invalid": "Invalid or expired token. Please request a new one via private chat.",
+        "ban_service_unavailable": "Ban service unavailable",
+        "monitor_service_unavailable": "System monitor unavailable",
+        "invalid_user_id": "User ID must be a number",
+    }
+    
     def _check_admin(self, user_id: int) -> bool:
         """检查是否为管理员"""
         return user_id in config.admin_user_ids_set
+    
+    def _verify_token(self, user_id: int, token: str) -> Result[bool]:
+        """验证令牌"""
+        token_service = ServiceLocator.get(TokenServiceProtocol)
+        if token_service is None:
+            return self.err("token_service_unavailable")
+        
+        if not token_service.verify_token(user_id, token):
+            return self.err("token_invalid")
+        
+        return self.ok(True)
     
     async def handle(self, event: MessageEvent, args: str) -> None:
         """处理状态控制命令"""
         user_id = event.user_id
         
         if not self._check_admin(user_id):
-            await self.reply("您没有管理员权限")
+            await self.reply(self.get_error_message("not_admin"))
             return
         
         if not args:
@@ -111,17 +134,9 @@ class StatusControlHandler(PluginHandler):
         remaining = parts[1] if len(parts) > 1 else ""
         
         # 验证令牌
-        token_service = ServiceLocator.get(TokenServiceProtocol)
-        if token_service is None:
-            await self.reply("令牌服务不可用")
-            return
-        
-        if not token_service.verify_token(user_id, token):
-            if token_service.has_valid_token(user_id):
-                remaining_time = token_service.get_token_remaining_time(user_id)
-                await self.reply(f"令牌错误。您有有效令牌，剩余 {remaining_time} 秒")
-            else:
-                await self.reply("令牌无效或已过期，请私聊申请新令牌")
+        token_result = self._verify_token(user_id, token)
+        if token_result.is_failure:
+            await self.reply(self.get_error_message(token_result.error))
             return
         
         if not remaining:
@@ -143,30 +158,27 @@ class StatusControlHandler(PluginHandler):
         elif action == "system":
             await self._show_system_status()
         else:
-            await self.reply(f"未知操作: {action}。可用: toggle/ban/unban/status/system")
+            await self.reply(f"Unknown operation: {action}. Available: toggle/ban/unban/status/system")
     
     async def _show_status(self) -> None:
         """显示所有功能状态"""
-        lines = ["功能状态:"]
+        lines = ["Feature status:"]
         
         for feature_key, display_name, _ in self.CONTROLLABLE_FEATURES:
             is_enabled = config.is_enabled(feature_key)
-            status = "[开启]" if is_enabled else "[关闭]"
+            status = "[ON]" if is_enabled else "[OFF]"
             lines.append(f"  {display_name}: {status}")
         
-        # 通过协议层获取黑名单服务
         ban = ServiceLocator.get(BanServiceProtocol)
-        banned_count = 0
-        if ban is not None:
-            banned_count = ban.get_banned_count()
-        lines.append(f"\n已拉黑用户: {banned_count} 人")
+        banned_count = ban.get_banned_count() if ban else 0
+        lines.append(f"\nBanned users: {banned_count}")
         
         await self.send("\n".join(lines), finish=True)
     
     async def _handle_toggle(self, args: str) -> None:
         """处理功能开关"""
         if not args:
-            await self.reply("请输入要切换的功能名，如: toggle 数学")
+            await self.reply("Please specify feature name, e.g.: toggle math")
             return
         
         target = args.strip().lower()
@@ -179,84 +191,83 @@ class StatusControlHandler(PluginHandler):
         
         if not matched_feature:
             available = ", ".join([name for _, name, _ in self.CONTROLLABLE_FEATURES])
-            await self.send(f"未知功能。可用: {available}", finish=True)
+            await self.send(f"Unknown feature. Available: {available}", finish=True)
             return
         
         feature_key, display_name = matched_feature
         
-        # 切换功能开关
         current_value = getattr(config, f"{feature_key}_enabled", True)
         setattr(config, f"{feature_key}_enabled", not current_value)
-        new_status = "开启" if not current_value else "关闭"
+        new_status = "ON" if not current_value else "OFF"
         
-        await self.send(f"{display_name} 已{new_status}", finish=True)
+        await self.send(f"{display_name} is now {new_status}", finish=True)
     
     async def _handle_ban(self, user_id_str: str) -> None:
         """处理拉黑用户"""
         if not user_id_str.strip():
-            await self.reply("请输入用户ID，如: ban 123456")
+            await self.reply("Please specify user ID, e.g.: ban 123456")
             return
         
         try:
             target_user_id = int(user_id_str.strip())
         except ValueError:
-            await self.reply("用户ID必须是数字")
+            await self.reply(self.get_error_message("invalid_user_id"))
             return
         
         ban = ServiceLocator.get(BanServiceProtocol)
         if ban is None:
-            await self.reply("黑名单服务不可用")
+            await self.reply(self.get_error_message("ban_service_unavailable"))
             return
         
         if ban.is_banned(target_user_id):
-            await self.send(f"用户 {target_user_id} 已在黑名单中", finish=True)
+            await self.send(f"User {target_user_id} is already banned", finish=True)
             return
         
         result = ban.ban(target_user_id)
         if result.is_success:
-            await self.send(f"用户 {target_user_id} 已被拉黑", finish=True)
+            await self.send(f"User {target_user_id} has been banned", finish=True)
         else:
-            await self.send(f"拉黑失败: {result.error}", finish=True)
+            await self.send(f"Ban failed: {result.error}", finish=True)
     
     async def _handle_unban(self, user_id_str: str) -> None:
         """处理解封用户"""
         if not user_id_str.strip():
-            await self.reply("请输入用户ID，如: unban 123456")
+            await self.reply("Please specify user ID, e.g.: unban 123456")
             return
         
         try:
             target_user_id = int(user_id_str.strip())
         except ValueError:
-            await self.reply("用户ID必须是数字")
+            await self.reply(self.get_error_message("invalid_user_id"))
             return
         
         ban = ServiceLocator.get(BanServiceProtocol)
         if ban is None:
-            await self.reply("黑名单服务不可用")
+            await self.reply(self.get_error_message("ban_service_unavailable"))
             return
         
         if not ban.is_banned(target_user_id):
-            await self.send(f"用户 {target_user_id} 不在黑名单中", finish=True)
+            await self.send(f"User {target_user_id} is not banned", finish=True)
             return
         
         result = ban.unban(target_user_id)
         if result.is_success:
-            await self.send(f"用户 {target_user_id} 已解除拉黑", finish=True)
+            await self.send(f"User {target_user_id} has been unbanned", finish=True)
         else:
-            await self.send(f"解封失败: {result.error}", finish=True)
+            await self.send(f"Unban failed: {result.error}", finish=True)
     
     async def _show_system_status(self) -> None:
         """显示系统状态"""
         monitor = ServiceLocator.get(SystemMonitorProtocol)
         if monitor is None:
-            await self.send("系统监控服务不可用", finish=True)
+            await self.send(self.get_error_message("monitor_service_unavailable"), finish=True)
             return
         
         status_text = monitor.get_status_text()
         await self.send(status_text, finish=True)
 
 
-# ========== 创建处理器和接收器 ==========
+# 创建处理器和接收器
 request_token_handler = RequestTokenHandler()
 status_control_handler = StatusControlHandler()
 
@@ -264,11 +275,11 @@ request_token_receiver = CommandReceiver(request_token_handler)
 status_control_receiver = CommandReceiver(status_control_handler)
 
 
-# ========== 导出元数据 ==========
+# 导出元数据
 if NONEBOT_AVAILABLE:
     __plugin_meta__ = PluginMetadata(
         name="状态控制",
         description="管理员功能：查看和控制各功能开关状态（需令牌）",
         usage="私聊: /token (申请令牌) | 群内: /admin (状态控制) [令牌] [操作] [参数]",
-        extra={"author": "Lichlet", "version": "2.3.1"}
+        extra={"author": "Lichlet", "version": "2.4.0"}
     )

@@ -2,8 +2,19 @@
 帮助插件
 
 自动从 PluginRegistry 读取插件元数据，动态生成帮助信息。
-使用新架构（PluginHandler + CommandReceiver）重构
+支持查看功能列表和指定指令的详细用法。
+
+触发方式:
+    - /help - 显示所有可用功能列表
+    - /help [指令名] - 查看指定指令的详细用法
+
+配置:
+    无特殊配置项
+
+使用方式:
+    /help [指令名]
 """
+
 try:
     from nonebot.plugin import PluginMetadata
     NONEBOT_AVAILABLE = True
@@ -18,10 +29,22 @@ from plugins.common import (
     config,
     PluginRegistry,
 )
+from plugins.common.base import Result
 
 
 class HelpHandler(PluginHandler):
-    """帮助处理器"""
+    """
+    帮助信息处理器
+    
+    Attributes:
+        name: 插件名称
+        description: 功能描述
+        command: 命令名称
+        aliases: 命令别名集合
+        priority: 命令处理优先级
+        feature_name: 功能开关名（None表示不受开关控制）
+        ERROR_MESSAGES: 错误消息映射
+    """
     
     name = "帮助"
     description = "查看插件使用帮助"
@@ -30,64 +53,100 @@ class HelpHandler(PluginHandler):
     priority = 10
     feature_name = None
     
-    async def handle(self, event, args: str) -> None:
-        """处理帮助命令"""
+    ERROR_MESSAGES = {
+        "command_not_found": "Command not found",
+        "feature_disabled": "Feature is currently disabled",
+        "no_features_available": "All features are currently disabled. Please contact the administrator.",
+    }
+    
+    async def handle(self, event, args: str) -> Result[None]:
+        """
+        处理帮助命令
+        
+        Args:
+            event: 消息事件对象
+            args: 用户输入的参数，为空显示列表，否则显示详情
+            
+        Returns:
+            Result[None]: 操作结果
+        """
         registry = PluginRegistry.get_instance()
         
         # 如果有参数，显示特定指令的详细信息
         if args:
-            await self._show_plugin_detail(registry, args.strip())
-            return
+            result = await self._show_plugin_detail(registry, args.strip())
+            if result.is_failure:
+                await self.reply(f"{self.get_error_message(result.error)}: /{args.strip()}")
+            return result
         
         # 否则显示功能列表
-        await self._show_plugin_list(registry)
+        result = await self._show_plugin_list(registry)
+        if result.is_failure:
+            await self.send(self.get_error_message(result.error), finish=True)
+        return result
     
-    async def _show_plugin_detail(self, registry: PluginRegistry, query: str) -> None:
-        """显示特定插件的详细信息"""
+    async def _show_plugin_detail(self, registry: PluginRegistry, query: str) -> Result[None]:
+        """
+        显示特定插件的详细信息
+        
+        Args:
+            registry: 插件注册表实例
+            query: 用户查询的指令名
+            
+        Returns:
+            Result[None]: 操作结果
+        """
         # 去掉可能的前导 /
         query = query.lstrip("/")
         
         # 特殊处理 help 自身
         if query in ("help", "帮助"):
             lines = ["/help 帮助"]
-            lines.append("别名: /帮助")
-            lines.append("描述: 查看插件使用帮助")
-            lines.append("用法: /help [指令名] - 显示功能列表或查看指定指令详细用法")
+            lines.append("Aliases: /帮助")
+            lines.append("Description: 查看插件使用帮助")
+            lines.append("Usage: /help [command] - Show feature list or specific command details")
             await self.send("\n".join(lines), finish=True)
-            return
+            return Result.ok(None)
         
         # 通过命令名查找插件
         plugin = registry.get_plugin_by_command(query)
         
         if plugin is None or plugin.hidden:
-            await self.reply(f"未找到指令: /{query}")
-            return
+            return Result.err("command_not_found")
         
         # 检查功能开关
         if plugin.feature_name and not config.is_enabled(plugin.feature_name):
-            await self.reply(f"该功能当前已关闭: /{query}")
-            return
+            return Result.err("feature_disabled")
         
         lines = [f"/{plugin.command} {plugin.name}"]
         
         if plugin.aliases:
             aliases_text = ", ".join(f"/{a}" for a in sorted(plugin.aliases))
-            lines.append(f"别名: {aliases_text}")
+            lines.append(f"Aliases: {aliases_text}")
         
-        lines.append(f"描述: {plugin.description}")
+        lines.append(f"Description: {plugin.description}")
         
         if plugin.usage:
-            lines.append(f"用法: {plugin.usage}")
+            lines.append(f"Usage: {plugin.usage}")
         
         await self.send("\n".join(lines), finish=True)
+        return Result.ok(None)
     
-    async def _show_plugin_list(self, registry: PluginRegistry) -> None:
-        """显示所有可用功能列表"""
+    async def _show_plugin_list(self, registry: PluginRegistry) -> Result[None]:
+        """
+        显示所有可用功能列表
+        
+        Args:
+            registry: 插件注册表实例
+            
+        Returns:
+            Result[None]: 操作结果
+        """
         plugins = registry.get_command_plugins(include_hidden=False)
         
         if not plugins:
-            await self.send("欢迎使用Anemone bot!\n\n当前没有可用的功能", finish=True)
-            return
+            await self.send("Welcome to Anemone bot!\n\nNo features available", finish=True)
+            return Result.err("no_features_available")
         
         enabled_plugins = []
         for plugin in plugins:
@@ -100,7 +159,7 @@ class HelpHandler(PluginHandler):
             
             enabled_plugins.append(plugin)
         
-        lines = ["欢迎使用Anemone bot!"]
+        lines = ["Welcome to Anemone bot!"]
         
         for plugin in enabled_plugins:
             lines.append(f"/{plugin.command} {plugin.name}")
@@ -110,14 +169,15 @@ class HelpHandler(PluginHandler):
             if plugin.feature_name and not config.is_enabled(plugin.feature_name):
                 continue
             
-            lines.append(f"(自动触发) {plugin.name}")
+            lines.append(f"(Auto) {plugin.name}")
         
         if len(enabled_plugins) == 0:
-            lines.append("当前所有功能已关闭，请联系管理员")
+            lines.append("All features are currently disabled, please contact the administrator")
         
-        lines.append("\n使用 /help 指令名 查看详细用法")
+        lines.append("\nUse /help [command] to view detailed usage")
         
         await self.send("\n".join(lines), finish=True)
+        return Result.ok(None)
 
 
 # 创建处理器和接收器
@@ -131,5 +191,5 @@ if NONEBOT_AVAILABLE:
         name=handler.name,
         description=handler.description,
         usage=f"/{handler.command}",
-        extra={"author": "Lichlet", "version": "2.3.1"}
+        extra={"author": "Lichlet", "version": "2.4.0"}
     )

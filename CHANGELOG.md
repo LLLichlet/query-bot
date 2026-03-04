@@ -6,6 +6,31 @@
 
 ---
 
+### Version 2.4.0 (2026-03-03)
+
+**新功能**
+
+- 新增 **MCMOD 模组查询插件** (`plugins/mcmod_search/`)
+  - 查询 Minecraft 模组信息，支持 ID、模组名、缩写搜索
+  - 使用 Selenium 截取 MCMOD 百科页面截图（标题 + 简介）
+  - 支持随机模组查询（无参数时）
+  - 配置项 `mcmod_search_enabled`：功能开关（默认开启）
+  - 配置项 `mcmod_capture_selectors`：截图 CSS 选择器（默认 `class-title,class-text-top`）
+
+**架构改进**
+
+- **统一错误处理机制**
+  - 所有插件重构为使用 `Result[T]` 类型处理错误
+  - `PluginHandler` 基类新增 `ok()` / `err()` / `check()` 方法快速创建 Result
+  - `PluginHandler` 基类新增 `get_error_message()` 方法统一获取错误消息
+  - 所有插件定义 `ERROR_MESSAGES` 类属性，错误消息使用英文
+
+**Bug 修复**
+
+- 修复 `finish=True` 时误报错误的问题：基类 `send()` 方法现在会静默捕获 `FinishedException`
+
+---
+
 ### Version 2.3.1 (2026-02-28)
 
 **功能改进**
@@ -257,7 +282,7 @@
 
 ---
 
-**最新版本**: 2.3.0  
+**最新版本**: 2.4.0  
 查看完整项目信息：[README.md](README.md)
 
 

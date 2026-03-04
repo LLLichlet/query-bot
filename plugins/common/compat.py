@@ -2,6 +2,21 @@
 兼容性模块 - 统一处理可选依赖的导入
 
 集中处理 NoneBot 等可选依赖的导入，避免每个文件重复 try/except。
+提供统一的导入接口，当 NoneBot 不可用时提供桩实现。
+
+使用方式：
+    from plugins.common.compat import MessageEvent, Matcher, NONEBOT_AVAILABLE
+    
+    if NONEBOT_AVAILABLE:
+        # 使用 NoneBot 功能
+        pass
+
+Example:
+    >>> from plugins.common.compat import MessageEvent, NONEBOT_AVAILABLE
+    >>> if NONEBOT_AVAILABLE:
+    ...     print("NoneBot 可用")
+    ... else:
+    ...     print("NoneBot 不可用，使用桩实现")
 """
 
 try:

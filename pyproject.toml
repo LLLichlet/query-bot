@@ -10,7 +10,7 @@ fastapi_reload = true
 
 [project]
 name = "Anemone bot"
-version = "2.3.0"
+version = "2.4.0"
 description = "Anemone bot - 多功能查询聊天机器人"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -24,6 +24,7 @@ dependencies = [
     "requests>=2.31.0",
     "pillow>=10.0.0",
     "psutil>=5.9.0",
+    "selenium>=4.15.0",
 ]
 
 [project.optional-dependencies]

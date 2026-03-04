@@ -3,6 +3,16 @@
 
 提供异步 HTTP 请求工具，支持重试机制和错误处理。
 
+使用方式:
+    >>> from plugins.utils import fetch_html, HttpClient
+    >>> 
+    >>> # 简单请求
+    >>> html = await fetch_html("https://example.com")
+    >>> 
+    >>> # 使用连接池客户端
+    >>> async with HttpClient() as client:
+    ...     data = await client.get("https://api.example.com/data")
+
 注意：此模块需要 httpx，导入失败时相关函数不可用。
 """
 
@@ -45,7 +55,25 @@ async def fetch_html(
     timeout: float = 10.0,
     **kwargs
 ) -> Optional[str]:
-    """异步获取网页 HTML"""
+    """
+    异步获取网页 HTML
+    
+    发送 GET 请求并返回响应文本内容。
+    
+    Args:
+        url: 目标 URL
+        headers: 自定义请求头（覆盖默认头）
+        timeout: 请求超时时间（秒）
+        **kwargs: 传递给 httpx 的额外参数
+        
+    Returns:
+        HTML 文本内容，请求失败时返回 None
+        
+    Example:
+        >>> html = await fetch_html("https://example.com")
+        >>> if html:
+        ...     print(html[:100])
+    """
     try:
         request_headers = headers if headers is not None else DEFAULT_HEADERS
         async with httpx.AsyncClient(headers=request_headers, timeout=timeout) as client:
@@ -63,7 +91,25 @@ async def fetch_binary(
     timeout: float = 10.0,
     **kwargs
 ) -> Optional[bytes]:
-    """异步获取二进制数据"""
+    """
+    异步获取二进制数据
+    
+    发送 GET 请求并返回响应的二进制内容。
+    
+    Args:
+        url: 目标 URL
+        headers: 自定义请求头（覆盖默认头）
+        timeout: 请求超时时间（秒）
+        **kwargs: 传递给 httpx 的额外参数
+        
+    Returns:
+        二进制数据，请求失败时返回 None
+        
+    Example:
+        >>> data = await fetch_binary("https://example.com/image.png")
+        >>> if data:
+        ...     print(f"Downloaded {len(data)} bytes")
+    """
     try:
         request_headers = headers if headers is not None else DEFAULT_HEADERS
         async with httpx.AsyncClient(headers=request_headers, timeout=timeout) as client:
@@ -84,14 +130,24 @@ async def download_file(
     """
     异步下载文件到本地
     
+    使用流式下载方式，适合大文件下载。
+    
     Args:
         url: 文件 URL
         save_path: 保存路径
-        headers: 自定义请求头
-        timeout: 超时时间（秒）
-    
+        headers: 自定义请求头（覆盖默认头）
+        timeout: 请求超时时间（秒）
+        
     Returns:
-        是否下载成功
+        下载成功返回 True，失败返回 False
+        
+    Example:
+        >>> success = await download_file(
+        ...     "https://example.com/file.zip",
+        ...     "/tmp/file.zip"
+        ... )
+        >>> if success:
+        ...     print("Download complete")
     """
     try:
         request_headers = headers if headers is not None else DEFAULT_HEADERS
@@ -113,11 +169,18 @@ class HttpClient:
     HTTP 客户端类 - 支持连接池和复用
     
     适用于需要频繁请求同一主机的场景。
+    支持异步上下文管理器（async with）。
     
+    Attributes:
+        headers: 默认请求头
+        timeout: 超时时间（秒）
+        follow_redirects: 是否跟随重定向
+        _client: httpx.AsyncClient 实例
+        
     Example:
-        >>> client = HttpClient(timeout=10.0)
-        >>> html = await client.get("https://api.example.com/data")
-        >>> await client.close()
+        >>> async with HttpClient(timeout=10.0) as client:
+        ...     html = await client.get("https://api.example.com/data")
+        ...     # 自动关闭连接
     """
     
     def __init__(
@@ -126,13 +189,26 @@ class HttpClient:
         timeout: float = 10.0,
         follow_redirects: bool = True
     ):
+        """
+        初始化 HTTP 客户端
+        
+        Args:
+            headers: 自定义请求头（覆盖默认头）
+            timeout: 请求超时时间（秒）
+            follow_redirects: 是否跟随重定向
+        """
         self.headers = headers or DEFAULT_HEADERS.copy()
         self.timeout = timeout
         self.follow_redirects = follow_redirects
         self._client: Optional[httpx.AsyncClient] = None
     
     async def _get_client(self) -> httpx.AsyncClient:
-        """获取或创建客户端"""
+        """
+        获取或创建 httpx 客户端实例
+        
+        Returns:
+            httpx.AsyncClient 实例
+        """
         if self._client is None:
             self._client = httpx.AsyncClient(
                 headers=self.headers,
@@ -142,7 +218,21 @@ class HttpClient:
         return self._client
     
     async def get(self, url: str, **kwargs) -> Optional[str]:
-        """GET 请求，返回文本"""
+        """
+        发送 GET 请求，返回文本
+        
+        Args:
+            url: 目标 URL
+            **kwargs: 传递给 httpx 的额外参数
+            
+        Returns:
+            响应文本内容，请求失败时返回 None
+            
+        Example:
+            >>> client = HttpClient()
+            >>> html = await client.get("https://example.com")
+            >>> await client.close()
+        """
         try:
             client = await self._get_client()
             response = await client.get(url, **kwargs)
@@ -153,7 +243,21 @@ class HttpClient:
             return None
     
     async def get_bytes(self, url: str, **kwargs) -> Optional[bytes]:
-        """GET 请求，返回二进制"""
+        """
+        发送 GET 请求，返回二进制数据
+        
+        Args:
+            url: 目标 URL
+            **kwargs: 传递给 httpx 的额外参数
+            
+        Returns:
+            响应二进制内容，请求失败时返回 None
+            
+        Example:
+            >>> client = HttpClient()
+            >>> data = await client.get_bytes("https://example.com/image.png")
+            >>> await client.close()
+        """
         try:
             client = await self._get_client()
             response = await client.get(url, **kwargs)
@@ -170,7 +274,26 @@ class HttpClient:
         json: Optional[Dict] = None,
         **kwargs
     ) -> Optional[httpx.Response]:
-        """POST 请求"""
+        """
+        发送 POST 请求
+        
+        Args:
+            url: 目标 URL
+            data: 表单数据
+            json: JSON 数据
+            **kwargs: 传递给 httpx 的额外参数
+            
+        Returns:
+            httpx.Response 对象，请求失败时返回 None
+            
+        Example:
+            >>> client = HttpClient()
+            >>> response = await client.post(
+            ...     "https://api.example.com/login",
+            ...     json={"username": "admin", "password": "123456"}
+            ... )
+            >>> await client.close()
+        """
         try:
             client = await self._get_client()
             response = await client.post(url, data=data, json=json, **kwargs)
@@ -181,7 +304,15 @@ class HttpClient:
             return None
     
     async def close(self) -> None:
-        """关闭客户端，释放资源"""
+        """
+        关闭客户端，释放资源
+        
+        关闭底层的 httpx.AsyncClient 连接池。
+        
+        Example:
+            >>> client = HttpClient()
+            >>> await client.close()
+        """
         if self._client:
             await self._client.aclose()
             self._client = None

@@ -1,6 +1,6 @@
 # Anemone bot
 
-[![Version](https://img.shields.io/badge/version-2.3.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.4.0-blue.svg)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/)
 [![NoneBot2](https://img.shields.io/badge/NoneBot-2.4+-green.svg)](https://nonebot.dev/)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
@@ -21,6 +21,7 @@
 - **随机回复**: 基于上下文的 AI 群聊回复，可配置触发概率
 - **午时已到**: 俄罗斯轮盘赌禁言小游戏
 - **PJSK 谱面**: 随机 Project Sekai 游戏谱面获取
+- **MCMOD 模组查询**: Minecraft 模组信息查询，支持网页截图
 - **状态控制**: 基于一次性令牌的管理员系统
 
 ## 技术架构
@@ -48,6 +49,7 @@ anemone-bot/
     ├── random_reply/       # 随机回复监听
     ├── high_noon/          # 轮盘赌游戏
     ├── pjskpartition/      # PJSK 谱面获取
+    ├── mcmod_search/       # MCMOD 模组查询
     ├── status_control/     # 管理员系统
     └── help/               # 帮助命令
 ```
@@ -71,6 +73,21 @@ anemone-bot/
 **独立工具层**: 消息构建、网络请求、图片处理等纯函数工具（无状态，被各层调用）
 
 依赖规则：上层仅依赖协议层，不依赖具体实现；服务层通过 `ServiceLocator` 注册，插件层通过 `ServiceLocator.get(Protocol)` 获取。
+
+## 技术栈
+
+| 组件 | 版本 | 说明 |
+|------|------|------|
+| Python | 3.9+ | 编程语言 |
+| NoneBot2 | 2.4.0+ | 机器人框架 |
+| NoneBot-Adapter-OneBot | 2.4.0+ | OneBot V11 协议适配器 |
+| OpenAI | 1.0+ | DeepSeek API 客户端（AsyncOpenAI） |
+| Pydantic-Settings | 2.0+ | 配置管理 |
+| HTTPX | 0.24+ | 异步 HTTP 客户端 |
+| Requests | 2.31+ | 同步 HTTP 客户端 |
+| Pillow | 10.0+ | 图像处理 |
+| Selenium | 4.15+ | 网页截图（MCMOD 插件） |
+| psutil | 5.9+ | 系统监控 |
 
 ## 快速开始
 
@@ -124,6 +141,10 @@ QUERY_RANDOM_ENABLED=True
 QUERY_HIGHNOON_ENABLED=True
 QUERY_PJSKPARTTION_ENABLED=True
 QUERY_MATH_SOUP_ENABLED=True
+QUERY_MCMOD_SEARCH_ENABLED=True
+
+# MCMOD 截图选择器（可选）
+QUERY_MCMOD_CAPTURE_SELECTORS=class-title,class-text-top
 
 # 随机回复概率 (0.0-1.0)
 QUERY_RANDOM_REPLY_PROBABILITY=0.02
@@ -151,51 +172,61 @@ python bot.py
 
 ### 创建新插件
 
-继承 `CommandPlugin` 基类：
+继承 `PluginHandler` 基类：
 
 ```python
-from plugins.common import CommandPlugin, AIService, config
+from plugins.common import PluginHandler, CommandReceiver, ServiceLocator, AIServiceProtocol, config
+from plugins.common.base import Result
 
-class ExamplePlugin(CommandPlugin):
+class ExampleHandler(PluginHandler):
     name = "示例插件"
     description = "插件功能描述"
-    command = "示例"
+    command = "example"
     feature_name = "example"  # 对应 config.example_enabled
     aliases = {"别名1", "别名2"}
     
+    # 错误消息映射（英文）
+    ERROR_MESSAGES = {
+        "empty_input": "Please enter something",
+        "ai_not_available": "AI service not available",
+    }
+    
     async def handle(self, event, args: str) -> None:
-        """处理命令
-        
-        Args:
-            event: MessageEvent 消息事件
-            args: 命令参数（已去除首尾空格）
-        """
+        """处理命令"""
+        # 使用基类方法检查输入
         if not args:
-            await self.reply("请输入参数")
+            await self.reply(self.get_error_message("empty_input"))
             return
         
-        # 使用 AI 服务
-        ai = AIService.get_instance()
+        # 通过协议层获取服务
+        ai = ServiceLocator.get(AIServiceProtocol)
+        if ai is None or not ai.is_available:
+            await self.reply(self.get_error_message("ai_not_available"))
+            return
+        
+        # 调用服务
         result = await ai.chat(
             system_prompt="系统提示词",
             user_input=args,
             temperature=0.3
         )
         
+        # 处理 Result[T]
         if result.is_success:
             await self.reply(result.value)
         else:
-            await self.reply(f"错误: {result.error}")
+            await self.reply(f"Error: {result.error}")
 
-# 实例化即注册
-plugin = ExamplePlugin()
+# 创建处理器和接收器（必须创建接收器才会注册命令）
+handler = ExampleHandler()
+receiver = CommandReceiver(handler)
 ```
 
 基类自动处理：
-- 命令处理器注册 (`on_command`)
-- 黑名单检查 (`BanService`)
 - 功能开关检查 (`config.{feature_name}_enabled`)
-- 错误处理和日志记录
+- 统一错误消息 (`get_error_message`)
+- 消息发送缓冲（防风控）
+- 并发安全（ContextVar 隔离）
 
 ### 服务层开发
 
@@ -327,6 +358,7 @@ status = service.get_status()
 
 详见 [CHANGELOG.md](CHANGELOG.md)
 
+- **v2.4.0**: 新增MCMOD模组查询插件，统一错误处理机制
 - **v2.3.1**: PJSK谱面插件增强，支持编号/歌名搜索和难度选择
 - **v2.3.0**: 新增复读插件，随机回复逻辑调整为关键词触发
 - **v2.2.6**: 修复消息发送并发bug，解决多请求消息丢失问题
@@ -360,6 +392,7 @@ A QQ group chat bot based on the NoneBot2 framework, providing mathematical know
 - **Random Reply**: Context-aware AI group chat replies with configurable trigger probability
 - **High Noon**: Russian roulette mute game
 - **PJSK Charts**: Random Project Sekai game chart images
+- **MCMOD Mod Query**: Minecraft mod information query with web page screenshots
 - **Status Control**: Admin system based on one-time tokens
 
 ## Architecture
@@ -387,16 +420,45 @@ query-bot/
     ├── random_reply/       # Random reply listener
     ├── high_noon/          # Roulette game
     ├── pjskpartition/      # PJSK chart fetcher
+    ├── mcmod_search/       # MCMOD mod query
     ├── status_control/     # Admin system
     └── help/               # Help command
 ```
 
 ### Layered Architecture
 
-- **Config Layer**: Pydantic Settings, supports env vars and `.env` files
-- **Service Layer**: ServiceBase singleton pattern, provides AIService, BanService, ChatService, etc.
-- **Interface Layer**: CommandPlugin/MessagePlugin base classes with permission checks
-- **Utility Layer**: Message building, HTTP requests, image processing
+Strict 7-layer architecture design:
+
+```
+Plugin Layer → Handler Layer → Receiver Layer → Protocol Layer → Service Layer → Base Layer → Config Layer
+```
+
+- **Config Layer**: Pydantic Settings management, supports environment variables and `.env` files
+- **Base Layer**: `ServiceBase` singleton base class, `Result[T]` unified error handling
+- **Protocol Layer**: Protocol interface definitions, `ServiceLocator` service locator for decoupling
+- **Service Layer**: AIService, BanService, ChatService and other protocol implementations
+- **Handler Layer**: `PluginHandler` / `MessageHandler` business logic interfaces
+- **Receiver Layer**: `CommandReceiver` / `MessageReceiver` command registration and pre-checks
+- **Plugin Layer**: Specific feature implementations (math definitions, games, etc.)
+
+**Independent Utility Layer**: Message building, network requests, image processing and other pure function tools (stateless, called by all layers)
+
+Dependency Rule: Upper layers only depend on the Protocol layer, not concrete implementations; Service layer registers via `ServiceLocator`, plugin layer gets services via `ServiceLocator.get(Protocol)`.
+
+## Tech Stack
+
+| Component | Version | Description |
+|-----------|---------|-------------|
+| Python | 3.9+ | Programming language |
+| NoneBot2 | 2.4.0+ | Bot framework |
+| NoneBot-Adapter-OneBot | 2.4.0+ | OneBot V11 protocol adapter |
+| OpenAI | 1.0+ | DeepSeek API client (AsyncOpenAI) |
+| Pydantic-Settings | 2.0+ | Configuration management |
+| HTTPX | 0.24+ | Async HTTP client |
+| Requests | 2.31+ | Sync HTTP client |
+| Pillow | 10.0+ | Image processing |
+| Selenium | 4.15+ | Web screenshot (MCMOD plugin) |
+| psutil | 5.9+ | System monitoring |
 
 ## Quick Start
 
@@ -450,6 +512,10 @@ QUERY_RANDOM_ENABLED=True
 QUERY_HIGHNOON_ENABLED=True
 QUERY_PJSKPARTTION_ENABLED=True
 QUERY_MATH_SOUP_ENABLED=True
+QUERY_MCMOD_SEARCH_ENABLED=True
+
+# MCMOD screenshot selectors (optional)
+QUERY_MCMOD_CAPTURE_SELECTORS=class-title,class-text-top
 
 # Random reply probability (0.0-1.0)
 QUERY_RANDOM_REPLY_PROBABILITY=0.02
@@ -477,51 +543,61 @@ python bot.py
 
 ### Creating Plugins
 
-Extend `CommandPlugin` base class:
+Extend `PluginHandler` base class:
 
 ```python
-from plugins.common import CommandPlugin, AIService, config
+from plugins.common import PluginHandler, CommandReceiver, ServiceLocator, AIServiceProtocol, config
+from plugins.common.base import Result
 
-class ExamplePlugin(CommandPlugin):
+class ExampleHandler(PluginHandler):
     name = "Example Plugin"
     description = "Plugin description"
     command = "example"
     feature_name = "example"  # Maps to config.example_enabled
     aliases = {"alias1", "alias2"}
     
+    # Error message mapping (English)
+    ERROR_MESSAGES = {
+        "empty_input": "Please enter something",
+        "ai_not_available": "AI service not available",
+    }
+    
     async def handle(self, event, args: str) -> None:
-        """Handle command
-        
-        Args:
-            event: MessageEvent
-            args: Command arguments (stripped)
-        """
+        """Handle command"""
+        # Use base class method for validation
         if not args:
-            await self.reply("Please input parameters")
+            await self.reply(self.get_error_message("empty_input"))
             return
         
-        # Use AI service
-        ai = AIService.get_instance()
+        # Get service through protocol layer
+        ai = ServiceLocator.get(AIServiceProtocol)
+        if ai is None or not ai.is_available:
+            await self.reply(self.get_error_message("ai_not_available"))
+            return
+        
+        # Call service
         result = await ai.chat(
             system_prompt="System prompt",
             user_input=args,
             temperature=0.3
         )
         
+        # Handle Result[T]
         if result.is_success:
             await self.reply(result.value)
         else:
             await self.reply(f"Error: {result.error}")
 
-# Instantiation registers the plugin
-plugin = ExamplePlugin()
+# Create handler and receiver (receiver is required for command registration)
+handler = ExampleHandler()
+receiver = CommandReceiver(handler)
 ```
 
 Base class automatically handles:
-- Command handler registration (`on_command`)
-- Blacklist checking (`BanService`)
 - Feature toggle checking (`config.{feature_name}_enabled`)
-- Error handling and logging
+- Unified error messages (`get_error_message`)
+- Message send buffering (rate limiting)
+- Concurrency safety (ContextVar isolation)
 
 ### Service Layer Development
 
@@ -617,7 +693,7 @@ Identity verification based on one-time tokens:
 
 Supported actions:
 - `status` - View feature toggle status
-- `toggle [feature]` - Toggle feature (math, random, highnoon, pjskpartiton, math_soup)
+- `toggle [feature]` - Toggle feature (math, random, highnoon, pjskpartiton, math_soup, mcmod)
 - `ban [user_id]` - Ban user
 - `unban [user_id]` - Unban user
 - `system` - View resource usage
@@ -653,10 +729,13 @@ Development:
 
 See [CHANGELOG.md](CHANGELOG.md)
 
-- **v2.2.6**: Fixed message sending concurrency bug, resolved message loss in multi-request scenarios
+- **v2.4.0**: Added MCMOD mod query plugin, unified error handling mechanism
 - **v2.3.1**: Enhanced PJSK chart plugin with ID/song name search and difficulty selection
 - **v2.3.0**: Added echo plugin, changed random reply to keyword-triggered
+- **v2.2.6**: Fixed message sending concurrency bug, resolved message loss in multi-request scenarios
 - **v2.2.5**: Rebranded to Anemone bot
+- **v2.2.3**: Fixed math puzzle bugs, optimized AI prompts
+- **v2.2.2**: 7-layer architecture refactor, ServiceLocator, Protocol interfaces, Handler/Receiver separation
 - **v2.2.1**: PluginRegistry, TokenService, SystemMonitorService, nb-cli support
 - **v2.2.0**: Math puzzle plugin, GameServiceBase, 726+ math concepts
 - **v2.1.1**: Concurrency safety fix, BotService API encapsulation

@@ -2,6 +2,21 @@
 Bot API 服务 - 封装 NoneBot 群管理接口
 
 服务层 - 实现 BotServiceProtocol 协议
+
+提供群消息发送、成员禁言、群成员列表获取等功能的封装。
+所有方法都包含 NoneBot 导入保护，在 NoneBot 不可用时返回失败结果。
+在 initialize() 完成后自动注册到 ServiceLocator。
+
+使用方式:
+    >>> from plugins.common.services import BotService
+    >>> bot = BotService.get_instance()
+    >>> bot.initialize()
+    >>> 
+    >>> # 发送消息
+    >>> result = await bot.send_message(event, "你好", at_user=True)
+    >>> 
+    >>> # 禁言用户
+    >>> result = await bot.ban_user(123456, 789012, 300)
 """
 
 from typing import List, Dict, Any, Optional
@@ -30,11 +45,30 @@ class BotService(ServiceBase, BotServiceProtocol):
     """
     Bot API 服务类 - 封装群管理操作
     
-    实现 BotServiceProtocol 协议，在 initialize() 完成后注册到 ServiceLocator。
+    实现 BotServiceProtocol 协议，提供消息发送、禁言等群管理功能。
+    包含 NoneBot 导入保护，在框架不可用时优雅降级。
+    在 initialize() 完成后自动注册到 ServiceLocator。
+    
+    Attributes:
+        logger: 日志记录器实例
+        
+    Example:
+        >>> bot = BotService.get_instance()
+        >>> bot.initialize()
+        >>> result = await bot.send_message(event, "消息内容")
+        >>> if result.is_success:
+        ...     print("发送成功")
     """
     
     def __init__(self) -> None:
-        """初始化服务"""
+        """
+        初始化服务
+        
+        创建日志记录器，实际功能依赖 NoneBot 框架。
+        
+        Example:
+            >>> bot = BotService.get_instance()
+        """
         super().__init__()
         self.logger = logging.getLogger("plugins.common.services.bot")
     
@@ -42,7 +76,12 @@ class BotService(ServiceBase, BotServiceProtocol):
         """
         初始化服务
         
-        注意：初始化完成后才注册到 ServiceLocator。
+        注册服务到 ServiceLocator，标记为已初始化。
+        
+        Example:
+            >>> bot = BotService.get_instance()
+            >>> bot.initialize()
+            >>> # 服务已注册到 ServiceLocator
         """
         if self._initialized:
             return
@@ -54,7 +93,19 @@ class BotService(ServiceBase, BotServiceProtocol):
         self.logger.info("Bot Service initialized")
     
     def _get_bot(self) -> Optional[Bot]:
-        """获取 Bot 实例"""
+        """
+        获取 Bot 实例
+        
+        从 NoneBot 获取 Bot 实例，包含异常处理。
+        
+        Returns:
+            Bot 实例，如果 NoneBot 不可用或获取失败则返回 None
+            
+        Example:
+            >>> bot_instance = bot._get_bot()
+            >>> if bot_instance is None:
+            ...     print("Bot 不可用")
+        """
         if not NONEBOT_AVAILABLE:
             return None
         try:
@@ -71,7 +122,24 @@ class BotService(ServiceBase, BotServiceProtocol):
         message: Any,
         at_user: bool = False
     ) -> Result[bool]:
-        """发送消息"""
+        """
+        发送消息
+        
+        发送消息到指定会话，可选 @ 用户。
+        
+        Args:
+            event: NoneBot 消息事件对象
+            message: 要发送的消息内容
+            at_user: 是否在消息前 @ 发送者，默认 False
+            
+        Returns:
+            Result[bool]: 成功时 value 为 True
+            
+        Example:
+            >>> result = await bot.send_message(event, "你好", at_user=True)
+            >>> if result.is_success:
+            ...     print("发送成功")
+        """
         bot = self._get_bot()
         if not bot:
             return Result.fail("Bot 不可用")
@@ -87,7 +155,24 @@ class BotService(ServiceBase, BotServiceProtocol):
             return Result.fail(f"发送消息失败: {e}")
     
     async def ban_user(self, group_id: int, user_id: int, duration: int) -> Result[bool]:
-        """禁言用户"""
+        """
+        禁言用户
+        
+        在指定群组禁言指定用户。
+        
+        Args:
+            group_id: QQ群号
+            user_id: 用户QQ号
+            duration: 禁言时长（秒）
+            
+        Returns:
+            Result[bool]: 成功时 value 为 True
+            
+        Example:
+            >>> result = await bot.ban_user(123456, 789012, 300)
+            >>> if result.is_success:
+            ...     print("禁言成功")
+        """
         bot = self._get_bot()
         if not bot:
             return Result.fail("Bot 不可用")
@@ -115,14 +200,21 @@ class BotService(ServiceBase, BotServiceProtocol):
         """
         随机时长禁言
         
+        在指定范围内随机选择禁言时长并执行禁言。
+        
         Args:
             group_id: QQ群号
             user_id: 用户QQ号
-            min_minutes: 最短禁言分钟数
-            max_minutes: 最长禁言分钟数
+            min_minutes: 最短禁言分钟数，默认 1
+            max_minutes: 最长禁言分钟数，默认 10
             
         Returns:
-            Result[int] - 成功时 value 为实际禁言秒数
+            Result[int]: 成功时 value 为实际禁言秒数
+            
+        Example:
+            >>> result = await bot.ban_random_duration(123456, 789012, 1, 5)
+            >>> if result.is_success:
+            ...     print(f"禁言 {result.value} 秒")
         """
         duration_seconds = random.randint(min_minutes, max_minutes) * 60
         
@@ -140,13 +232,20 @@ class BotService(ServiceBase, BotServiceProtocol):
         """
         批量禁言用户
         
+        对多个用户执行相同时长的禁言。
+        
         Args:
             group_id: QQ群号
             user_ids: 用户QQ号列表
             duration: 禁言时长（秒）
             
         Returns:
-            Result[List[int]] - 成功禁言的用户ID列表
+            Result[List[int]]: 成功时 value 为成功禁言的用户ID列表
+            
+        Example:
+            >>> result = await bot.ban_multiple(123456, [111, 222], 300)
+            >>> if result.is_success:
+            ...     print(f"成功禁言 {len(result.value)} 人")
         """
         banned = []
         failed = []
@@ -164,7 +263,22 @@ class BotService(ServiceBase, BotServiceProtocol):
         return Result.success(banned)
     
     async def get_group_members(self, group_id: int) -> Result[List[Dict[str, Any]]]:
-        """获取群成员列表"""
+        """
+        获取群成员列表
+        
+        获取指定群组的所有成员信息。
+        
+        Args:
+            group_id: QQ群号
+            
+        Returns:
+            Result[List[Dict[str, Any]]]: 成功时 value 为成员信息列表
+            
+        Example:
+            >>> result = await bot.get_group_members(123456)
+            >>> if result.is_success:
+            ...     print(f"群成员数量: {len(result.value)}")
+        """
         bot = self._get_bot()
         if not bot:
             return Result.fail("Bot 不可用")
@@ -178,5 +292,14 @@ class BotService(ServiceBase, BotServiceProtocol):
 
 
 def get_bot_service() -> BotService:
-    """获取 Bot 服务单例（向后兼容）"""
+    """
+    获取 Bot 服务单例（向后兼容）
+    
+    Returns:
+        BotService 单例实例
+        
+    Example:
+        >>> bot = get_bot_service()
+        >>> bot.initialize()
+    """
     return BotService.get_instance()

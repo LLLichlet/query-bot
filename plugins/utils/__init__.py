@@ -1,7 +1,23 @@
 """
 工具模块 - 纯函数工具集合
 
-提供与业务逻辑无关的通用工具函数。
+提供与业务逻辑无关的通用工具函数，包括消息构建、网络请求、
+图片处理、提示词读取和文本处理等功能。
+
+使用方式:
+    >>> from plugins.utils import (
+    ...     build_at_message,      # 消息构建
+    ...     fetch_html,            # 网络请求
+    ...     download_image,        # 图片下载
+    ...     read_prompt,           # 提示词读取
+    ...     calculate_similarity,  # 文本相似度
+    ... )
+    >>> 
+    >>> # 构建 @ 用户的消息
+    >>> msg = build_at_message(123456789, "你好")
+    >>> 
+    >>> # 获取网页 HTML
+    >>> html = await fetch_html("https://example.com")
 
 Note: 这不是一个 NoneBot 插件，只是工具集合。
 """
