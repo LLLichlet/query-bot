@@ -1,0 +1,135 @@
+HELP.md
+AGENTS.md
+
+# ============================================
+# Gradle
+# ============================================
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Gradle cache
+.gradletasknamecache
+
+# ============================================
+# IDEs
+# ============================================
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Eclipse ###
+.apt_generated
+.factorypath
+.project
+.classpath
+.settings/
+
+# ============================================
+# Spring Boot / Application
+# ============================================
+
+# Local configuration (contains secrets!)
+# Main config - use application-example.yaml as template
+application.yaml
+application.yml
+!application-example.yaml
+!application-example.yml
+
+# Environment-specific configs
+application-local.yaml
+application-local.yml
+application-dev.yaml
+application-dev.yml
+application-prod.yaml
+application-prod.yml
+application-*.yaml
+application-*.yml
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# ============================================
+# Data & Logs
+# ============================================
+
+# Data directory (runtime data)
+data/
+!data/.gitkeep
+
+# Log files
+*.log
+logs/
+log/
+
+# ============================================
+# OS Generated Files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================================
+# Java
+# ============================================
+*.class
+*.jar
+*.war
+*.ear
+
+# JVM crash logs
+hs_err_pid*
+replay_pid*
+*.hprof
+
+# ============================================
+# Temporary Files
+# ============================================
+*.tmp
+tmp/
+temp/
+*.swp
+*.swo
+*~
+
+# ============================================
+# Test Reports
+# ============================================
+test-results/
+reports/
