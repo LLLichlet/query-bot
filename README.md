@@ -9,6 +9,12 @@
 
 ---
 
+**重要通知**: Python 版本将停止功能更新，仅接受 Bug 修复。请迁移至 [Java 版本](../Anemone-java/)，它将成为未来的主要维护版本。
+
+**Notice**: The Python version is entering maintenance mode with no new features planned. Please migrate to the [Java version](../Anemone-java/), which will be the actively maintained version.
+
+---
+
 <a name="中文文档"></a>
 # 中文文档
 
