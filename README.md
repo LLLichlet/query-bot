@@ -9,9 +9,9 @@
 
 ---
 
-**重要通知**: Python 版本将停止功能更新，仅接受 Bug 修复。请迁移至 [Java 版本](../Anemone-java/)，它将成为未来的主要维护版本。
+**重要通知**: Python 版本将停止功能更新，仅接受 Bug 修复。请迁移至 [Java 版本](https://github.com/LLLichlet/Anemone-bot/tree/java-version)，它将成为未来的主要维护版本。
 
-**Notice**: The Python version is entering maintenance mode with no new features planned. Please migrate to the [Java version](../Anemone-java/), which will be the actively maintained version.
+**Notice**: The Python version is entering maintenance mode with no new features planned. Please migrate to the [Java version](https://github.com/LLLichlet/Anemone-bot/tree/java-version), which will be the actively maintained version.
 
 ---
 
