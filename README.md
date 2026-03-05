@@ -199,7 +199,7 @@ public class MyMessageHandler extends MessageHandler {
 
 ## 相关链接
 
-- [Python 版本](../Anemone/) - 原 Python 实现
+- [Python 版本](https://github.com/LLLichlet/Anemone-bot/tree/master) - 原 Python 实现
 - [版本对照](../VERSION.md) - 迁移进度追踪
 - [更新日志](CHANGELOG.md) - 版本更新历史
 
