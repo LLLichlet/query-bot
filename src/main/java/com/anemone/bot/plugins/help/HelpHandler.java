@@ -3,7 +3,6 @@ package com.anemone.bot.plugins.help;
 import com.anemone.bot.base.Result;
 import com.anemone.bot.config.BotConfig;
 import com.anemone.bot.handler.PluginHandler;
-import com.anemone.bot.protocols.ServiceLocator;
 import com.anemone.bot.service.PluginInfo;
 import com.anemone.bot.service.PluginRegistry;
 import com.mikuac.shiro.core.Bot;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;

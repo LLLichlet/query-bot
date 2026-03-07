@@ -1,6 +1,5 @@
 package com.anemone.bot.plugins.pjsk;
 
-import com.anemone.bot.base.Result;
 import com.anemone.bot.config.BotConfig;
 import com.anemone.bot.handler.PluginHandler;
 import com.anemone.bot.service.PluginRegistry;

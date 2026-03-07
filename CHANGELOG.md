@@ -6,7 +6,33 @@
 
 ---
 
-### Version 0.3.0 (开发中)
+### Version 0.4.0 (2026-03-08)
+
+**新功能**
+
+- 新增 **数学定义查询插件** (`plugins/math/`)
+  - 香蕉空间风格定义：`/define` 或 `/定义`
+  - 多语言支持：自动识别中文、英文、法文、德文、俄文、日文
+  - AI 驱动：使用 DeepSeek API 生成形式化数学定义
+  - 配置项 `math-enabled`：功能开关（默认开启）
+  - 配置项 `math-temperature`：AI 温度参数（默认 0.1）
+  - 配置项 `math-max-tokens`：最大生成 token 数（默认 8192）
+
+**新增服务**
+
+- `AIService`: DeepSeek API 封装服务
+  - `chat()`: 异步对话接口
+  - 自动注册到 `ServiceLocator`
+
+**新增工具类**
+
+- `PromptUtils`: Prompt 文件读取工具
+  - `readPrompt()`: 从 resources/prompts 读取提示词
+  - 支持多语言 math_def.txt 提示词
+
+---
+
+### Version 0.3.0 (2026-03-06)
 
 **新功能**
 
@@ -96,6 +122,6 @@
 
 ---
 
-**最新版本**: 0.3.0 (开发中)  
+**最新版本**: 0.4.0 (开发中)  
 **Python 对照版本**: 2.4.0  
 查看完整项目信息：[README.md](README.md)

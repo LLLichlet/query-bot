@@ -6,13 +6,13 @@
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://openjdk.org/)
 [![Gradle](https://img.shields.io/badge/Gradle-8.5-blue)](https://gradle.org/)
 
-**项目状态**: 积极开发中 (v0.3.0) | 正在从 Python 版本迁移功能
+**项目状态**: 积极开发中 (v0.4.0) | 正在从 Python 版本迁移功能
 
 ## 简介
 
 Anemone Bot (Java 版) 是原 Python 版机器人的 Java 重构实现，采用 Spring Boot + Shiro 技术栈，保持与 Python 版相同的功能和分层架构设计。
 
-**长期目标**: 功能对齐 Python v2.6.0 后，成为主要维护版本。
+**长期目标**: 功能对齐 Python v2.4.0 后，成为主要维护版本。
 
 ## 核心功能
 
@@ -20,8 +20,8 @@ Anemone Bot (Java 版) 是原 Python 版机器人的 Java 重构实现，采用 
 |------|------|------|------|
 | 帮助 | `/help` (别名: `/帮助`) | 显示所有可用命令 | [已完成] |
 | 复读 | 自动触发 | 随机复读群消息，有概率倒序 | [已完成] |
-| PJSK 谱面 | `/chart` (别名: `/pjsk随机谱面`) | Project Sekai 谱面图片 | [进行中] |
-| 数学定义 | `/define` (别名: `/定义`) | 数学概念形式化定义 | [待开发] |
+| PJSK 谱面 | `/chart` (别名: `/pjsk随机谱面`) | Project Sekai 谱面图片 | [已完成] |
+| 数学定义 | `/define` (别名: `/定义`) | 香蕉空间风格数学定义 | [已完成] |
 | 数学谜题 | `/mathpuzzle` (别名: `/数学谜`) | 20 Questions 猜数学概念 | [待开发] |
 | 午时已到 | `/highnoon` (别名: `/午时已到`) | 俄罗斯轮盘赌禁言游戏 | [待开发] |
 | MCMOD 查询 | `/mcmod` | 查询 MCMOD 百科模组信息 | [待开发] |
@@ -88,11 +88,26 @@ shiro:
 
 anemone:
   bot:
+    # AI API 配置
     deepseek-api-key: ${DEEPSEEK_API_KEY:}
-    admin-user-ids: ${ADMIN_USER_IDS:}
+    deepseek-base-url: https://api.deepseek.com
+    deepseek-model: deepseek-chat
+    
+    # 功能开关
+    math-enabled: ${MATH_ENABLED:true}
     echo-enabled: ${ECHO_ENABLED:true}
+    
+    # AI 参数 - 数学定义
+    math-temperature: ${MATH_TEMPERATURE:0.1}
+    math-max-tokens: ${MATH_MAX_TOKENS:8192}
+    math-top-p: ${MATH_TOP_P:0.1}
+    
+    # 复读配置
     echo-probability: ${ECHO_PROBABILITY:0.01}
     echo-reverse-probability: ${ECHO_REVERSE_PROBABILITY:0.2}
+    
+    # 管理员配置
+    admin-user-ids: ${ADMIN_USER_IDS:}
 ```
 
 或通过环境变量配置：
@@ -120,6 +135,9 @@ export ADMIN_USER_IDS=123456789,987654321
 |--------|----------|--------|------|
 | deepseek-api-key | DEEPSEEK_API_KEY | - | DeepSeek API 密钥 |
 | admin-user-ids | ADMIN_USER_IDS | - | 管理员 QQ 号，逗号分隔 |
+| math-enabled | MATH_ENABLED | true | 数学定义功能开关 |
+| math-temperature | MATH_TEMPERATURE | 0.3 | 数学定义 AI 温度参数 |
+| math-max-tokens | MATH_MAX_TOKENS | 512 | 数学定义最大 token 数 |
 | echo-enabled | ECHO_ENABLED | true | 复读功能开关 |
 | echo-probability | ECHO_PROBABILITY | 0.01 | 复读概率 (0-1) |
 | echo-reverse-probability | ECHO_REVERSE_PROBABILITY | 0.2 | 倒序复读概率 |
@@ -178,12 +196,13 @@ public class MyMessageHandler extends MessageHandler {
 
 参见项目根目录的 [VERSION.md](../VERSION.md)。
 
-| Java 版本 | 目标 | Python 对照版本 | 状态 |
-|-----------|------|----------------|------|
-| v0.1.0 | 基础框架 | v2.2.0 架构 | [已完成] |
-| v0.2.0 | Help + Echo | v2.3.0 复读功能 | [已完成] |
-| v0.3.0 | PJSK 谱面 | v2.3.1 PJSK | [进行中] |
-| v1.0.0 | 功能对齐发布 | v2.6.0 | [目标] |
+| Java 版本 | 目标 | 状态 |
+|-----------|------|------|
+| v0.1.0 | 基础框架 | [已完成] |
+| v0.2.0 | Help + Echo | [已完成] |
+| v0.3.0 | PJSK 谱面 | [已完成] |
+| v0.4.0 | 数学定义查询 | [已完成] |
+| v1.0.0 | 功能对齐发布 | [目标] |
 
 ## 与 Python 版的区别
 

@@ -1,0 +1,46 @@
+# Shiro 反向 WebSocket 配置 (NapCat 连接 Java)
+# 复制此文件为 application.yaml 并填入实际配置
+
+server:
+  port: 8091  # HTTP 服务器端口
+
+spring:
+  application:
+    name: anemone-java
+
+shiro:
+  bot-list:
+    - bot-id: YOUR_BOT_ID
+  token: ""  # token 留空
+  ws:
+    server:
+      enable: true
+      url: "/ws/shiro"  # NapCat 连接这个路径
+    client:
+      enable: false  # 关闭正向连接
+  log-level: DEBUG
+
+anemone:
+  bot:
+    # AI API 配置
+    deepseek-api-key: ${DEEPSEEK_API_KEY:YOUR_DEEPSEEK_API_KEY}
+    deepseek-base-url: https://api.deepseek.com
+    deepseek-model: deepseek-chat
+    
+    # 功能开关
+    math-enabled: true
+    pjskpartiton-enabled: true
+    echo-enabled: true
+    
+    # 管理员配置（多个用逗号分隔）
+    admin-user-ids: ${ADMIN_USER_IDS:YOUR_USER_ID}
+    
+    # AI 参数 - 数学定义
+    math-temperature: 0.1
+    math-max-tokens: 8192
+    math-top-p: 0.1
+
+logging:
+  level:
+    com.anemone.bot: DEBUG
+    com.mikuac.shiro: DEBUG

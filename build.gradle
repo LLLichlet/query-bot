@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.anemone'
-version = '2.4.0'
+version = '0.4.0'
 description = 'Anemone Bot - QQ群聊机器人 (Java版)'
 
 java {
