@@ -28,11 +28,9 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
       
-      # 4. 给 gradlew 添加执行权限并构建
+      # 4. 构建项目（使用系统 gradle）
       - name: Build with Gradle
-        run: |
-          chmod +x ./gradlew
-          ./gradlew release --no-daemon
+        run: gradle release --no-daemon
       
       # 5. 创建 GitHub Release
       - name: Create Release
