@@ -3,12 +3,12 @@ package com.anemone.bot.protocols;
 /**
  * 聊天服务协议
  * 
- * 管理群聊历史记录和冷却时间控制。
+ * 管理群聊历史记录，用于随机回复功能的上下文获取。
  * 
  * Example:
  * <pre>{@code
  * ChatServiceProtocol chat = ServiceLocator.get(ChatServiceProtocol.class);
- * chat.recordMessage(123456L, 789L, "用户", "Hello");
+ * chat.recordMessage(123456L, 789L, "用户", "Hello", false);
  * String context = chat.getContext(123456L, 10);
  * }</pre>
  */
@@ -43,20 +43,4 @@ public interface ChatServiceProtocol {
     default String getContext(long groupId) {
         return getContext(groupId, 50);
     }
-    
-    /**
-     * 检查冷却时间
-     * 
-     * @param groupId 群号
-     * @param cooldownSeconds 冷却时间（秒）
-     * @return True 如果在冷却中，False 如果可以使用
-     */
-    boolean checkCooldown(long groupId, int cooldownSeconds);
-    
-    /**
-     * 设置冷却时间
-     * 
-     * @param groupId 群号
-     */
-    void setCooldown(long groupId);
 }

@@ -75,6 +75,9 @@ public class BotConfig {
     // ==================== AI 参数 - 数学海龟汤 ====================
     private double mathSoupTemperature = 0.3;
     
+    // ==================== MCMOD 配置 ====================
+    private String mcmodCaptureSelectors = "class-title,class-text-top";
+    
     // ==================== Getter / Setter ====================
     
     public String getDeepseekApiKey() { return deepseekApiKey; }
@@ -174,6 +177,9 @@ public class BotConfig {
     
     public double getMathSoupTemperature() { return mathSoupTemperature; }
     public void setMathSoupTemperature(double mathSoupTemperature) { this.mathSoupTemperature = mathSoupTemperature; }
+    
+    public String getMcmodCaptureSelectors() { return mcmodCaptureSelectors; }
+    public void setMcmodCaptureSelectors(String mcmodCaptureSelectors) { this.mcmodCaptureSelectors = mcmodCaptureSelectors; }
     
     /**
      * 检查功能是否开启

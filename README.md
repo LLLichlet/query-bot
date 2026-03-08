@@ -6,27 +6,32 @@
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://openjdk.org/)
 [![Gradle](https://img.shields.io/badge/Gradle-8.5-blue)](https://gradle.org/)
 
-**项目状态**: 积极开发中 (v0.4.0) | 正在从 Python 版本迁移功能
+**项目状态**: 稳定版 (v1.0.0) | 功能对齐 Python v2.4.0，已成为主要维护版本
 
 ## 简介
 
 Anemone Bot (Java 版) 是原 Python 版机器人的 Java 重构实现，采用 Spring Boot + Shiro 技术栈，保持与 Python 版相同的功能和分层架构设计。
 
-**长期目标**: 功能对齐 Python v2.4.0 后，成为主要维护版本。
+**说明**: Java 版本已达到功能对齐目标，现为项目的主要维护版本。Python 版本进入维护模式，仅接受 Bug 修复。
 
 ## 核心功能
 
 | 功能 | 命令 | 说明 | 状态 |
 |------|------|------|------|
-| 帮助 | `/help` (别名: `/帮助`) | 显示所有可用命令 | [已完成] |
-| 复读 | 自动触发 | 随机复读群消息，有概率倒序 | [已完成] |
-| PJSK 谱面 | `/chart` (别名: `/pjsk随机谱面`) | Project Sekai 谱面图片 | [已完成] |
-| 数学定义 | `/define` (别名: `/定义`) | 香蕉空间风格数学定义 | [已完成] |
-| 数学谜题 | `/mathpuzzle` (别名: `/数学谜`) | 20 Questions 猜数学概念 | [待开发] |
-| 午时已到 | `/highnoon` (别名: `/午时已到`) | 俄罗斯轮盘赌禁言游戏 | [待开发] |
-| MCMOD 查询 | `/mcmod` | 查询 MCMOD 百科模组信息 | [待开发] |
-| 随机回复 | 自动触发 | AI 基于上下文的回复 | [待开发] |
-| 状态控制 | `/admin` (别名: `/状态控制`) | 管理员功能 | [待开发] |
+| 帮助 | `/help` (别名: `/帮助`) | 显示所有可用命令 | ✅ |
+| 复读 | 自动触发 | 随机复读群消息，有概率倒序 | ✅ |
+| PJSK 谱面 | `/chart` (别名: `/pjsk随机谱面`) | Project Sekai 谱面图片 | ✅ |
+| 数学定义 | `/define` (别名: `/定义`) | 香蕉空间风格数学定义 | ✅ |
+| 数学谜题 | `/mathpuzzle` (别名: `/数学谜`) | 20 Questions 猜数学概念 | ✅ |
+| 数学谜题提问 | `/ask` (别名: `/问`) | 提出是非问题 | ✅ |
+| 数学谜题猜测 | `/guess` (别名: `/猜`) | 猜测答案 | ✅ |
+| 数学谜题揭示 | `/reveal` (别名: `/答案`) | 揭示答案 | ✅ |
+| 午时已到 | `/highnoon` (别名: `/午时已到`) | 俄罗斯轮盘赌禁言游戏 | ✅ |
+| 午时开枪 | `/fire` (别名: `/开枪`) | 参与游戏 | ✅ |
+| MCMOD 查询 | `/mcmod` | 查询 MCMOD 百科模组信息 | ✅ |
+| 随机回复 | 自动触发 | AI 基于上下文的回复 | ✅ |
+| 状态控制 | `/admin` (别名: `/状态控制`) | 管理员功能 | ✅ |
+| 申请令牌 | `/token` (私聊) | 获取管理员令牌 | ✅ |
 
 ## 技术栈
 
@@ -198,11 +203,16 @@ public class MyMessageHandler extends MessageHandler {
 
 | Java 版本 | 目标 | 状态 |
 |-----------|------|------|
-| v0.1.0 | 基础框架 | [已完成] |
-| v0.2.0 | Help + Echo | [已完成] |
-| v0.3.0 | PJSK 谱面 | [已完成] |
-| v0.4.0 | 数学定义查询 | [已完成] |
-| v1.0.0 | 功能对齐发布 | [目标] |
+| v0.1.0 | 基础框架 | ✅ |
+| v0.2.0 | Help + Echo | ✅ |
+| v0.3.0 | PJSK 谱面 | ✅ |
+| v0.4.0 | 数学定义查询 | ✅ |
+| v0.5.0 | 午时游戏 | ✅ |
+| v0.6.0 | 数学谜题 | ✅ |
+| v0.7.0 | 随机回复 | ✅ |
+| v0.8.0 | 状态控制 | ✅ |
+| v0.9.0 | MCMOD 查询 | ✅ |
+| **v1.0.0** | **正式发布** | ✅ |
 
 ## 与 Python 版的区别
 
@@ -222,10 +232,41 @@ public class MyMessageHandler extends MessageHandler {
 - [版本对照](../VERSION.md) - 迁移进度追踪
 - [更新日志](CHANGELOG.md) - 版本更新历史
 
+## 下载与安装
+
+### 方式一：下载预构建版本（推荐）
+
+从 [GitHub Releases](../../releases) 下载最新版本：
+
+```powershell
+# 1. 下载并解压
+Expand-Archive Anemone-java-v1.0.0.zip -DestinationPath Anemone-java
+cd Anemone-java
+
+# 2. 复制并编辑配置
+copy config\application.yaml.example config\application.yaml
+notepad config\application.yaml  # 填入 DeepSeek API Key 和 Bot QQ
+
+# 3. 运行
+.\start.bat  # Windows
+./start.sh   # Linux/Mac
+```
+
+### 方式二：从源码构建
+
+```bash
+git clone <repository-url>
+cd Anemone-java
+./gradlew release
+```
+
+构建输出：`build/distributions/Anemone-java-1.0.0.zip`
+
+
 ## 许可证
 
 与 Python 版相同。
 
 ---
 
-**注意**: Java 版本正在积极开发中，API 可能随时变更。生产环境建议继续使用 Python 版本。
+**注意**: Java v1.0.0 已正式发布，API 已稳定。建议新项目使用 Java 版本。Python 版本进入维护模式，6 个月后停止维护。

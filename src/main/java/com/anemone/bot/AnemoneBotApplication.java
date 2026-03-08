@@ -3,7 +3,6 @@ package com.anemone.bot;
 import com.anemone.bot.config.BotConfig;
 import com.anemone.bot.protocols.BotServiceProtocol;
 import com.anemone.bot.protocols.ServiceLocator;
-import com.anemone.bot.service.BotServiceImpl;
 import com.anemone.bot.service.PluginRegistry;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

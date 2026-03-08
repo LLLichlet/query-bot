@@ -42,8 +42,7 @@ public class PJSKHandler extends PluginHandler {
     private List<SongInfo> songs = new ArrayList<>();
     
     // 难度选项
-    private static final List<String> DIFFICULTIES = Arrays.asList("exp", "mst");
-    private static final List<String> ALL_DIFFICULTIES = Arrays.asList("exp", "mst", "apd");
+    private static final List<String> DIFFICULTIES = Arrays.asList("exp", "mst", "apd");
     
     @Autowired
     public PJSKHandler(PluginRegistry registry, BotConfig config) {

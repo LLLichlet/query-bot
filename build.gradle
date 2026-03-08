@@ -5,8 +5,11 @@ plugins {
 }
 
 group = 'com.anemone'
-version = '0.4.0'
+version = '1.0.0'
 description = 'Anemone Bot - QQ群聊机器人 (Java版)'
+
+// 发布包名称
+ext.releaseName = 'Anemone-java'
 
 java {
     toolchain {
@@ -44,6 +47,9 @@ dependencies {
     // 工具库
     implementation 'org.apache.commons:commons-lang3:3.14.0'
     
+    // Selenium - 网页截图（MCMOD 查询功能需要）
+    implementation 'org.seleniumhq.selenium:selenium-java:4.18.1'
+    
     // 配置处理
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     
@@ -54,4 +60,127 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// ========== 打包配置：排除敏感配置文件 ==========
+
+// 1. 排除 application.yaml 从打包
+processResources {
+    exclude 'application.yaml'
+    exclude 'application.yml'
+}
+
+// 2. 创建发布包任务
+tasks.register('release', Zip) {
+    group = 'distribution'
+    description = '创建发布包（不包含敏感配置）'
+    
+    archiveFileName = "Anemone-java-${version}.zip"
+    destinationDirectory = layout.buildDirectory.dir('distributions')
+    
+    // 等待 bootJar 任务完成
+    dependsOn bootJar
+    
+    // 复制 fat jar 文件（包含所有依赖）
+    from(bootJar.archiveFile) {
+        into 'lib'
+        rename { "${releaseName}-${version}.jar" }
+    }
+    
+    // 复制配置模板
+    from('src/main/resources/application-example.yaml') {
+        into 'config'
+        rename { 'application.yaml.example' }
+    }
+    
+    // 复制 prompts 等资源（不包含配置文件）
+    from('src/main/resources') {
+        include 'prompts/**'
+        include '*.json'
+        into 'resources'
+    }
+    
+    // 创建启动脚本
+    from('src/main/dist') {
+        include 'start.bat'
+        include 'start.sh'
+        include 'README.txt'
+    }
+}
+
+// 3. 创建简化版启动脚本（Windows）
+tasks.register('createStartScripts') {
+    group = 'distribution'
+    doLast {
+        mkdir("${layout.buildDirectory.get()}/distributions/scripts")
+        
+        // Windows 启动脚本
+        file("${layout.buildDirectory.get()}/distributions/scripts/start.bat").text = "@echo off\r\n" +
+            "chcp 65001 >nul\r\n" +
+            "echo =========================================\r\n" +
+            "echo   Anemone Bot (Java) v${version}\r\n" +
+            "echo =========================================\r\n" +
+            "echo.\r\n" +
+            "echo 请先复制 config/application.yaml.example 为 config/application.yaml\r\n" +
+            "echo 并填入您的配置信息。\r\n" +
+            "echo.\r\n" +
+            "\r\n" +
+            "if not exist \"config\\application.yaml\" (\r\n" +
+            "    echo [错误] 未找到 config/application.yaml\r\n" +
+            "    echo 请从 application.yaml.example 创建配置文件\r\n" +
+            "    pause\r\n" +
+            "    exit /b 1\r\n" +
+            ")\r\n" +
+            "\r\n" +
+            "echo 正在启动 Anemone Bot...\r\n" +
+            "java -jar \"lib\\${releaseName}-${version}.jar\" --spring.config.location=file:config/application.yaml\r\n" +
+            "pause\r\n"
+        
+        // Linux/Mac 启动脚本
+        file("${layout.buildDirectory.get()}/distributions/scripts/start.sh").text = "#!/bin/bash\n" +
+            "echo \"=========================================\"\n" +
+            "echo \"  Anemone Bot (Java) v${version}\"\n" +
+            "echo \"=========================================\"\n" +
+            "echo \"\"\n" +
+            "echo \"请确保 config/application.yaml 已配置\"\n" +
+            "echo \"\"\n" +
+            "\n" +
+            "if [ ! -f \"config/application.yaml\" ]; then\n" +
+            "    echo \"[错误] 未找到 config/application.yaml\"\n" +
+            "    echo \"请从 application.yaml.example 创建配置文件\"\n" +
+            "    exit 1\n" +
+            "fi\n" +
+            "\n" +
+            "echo \"正在启动 Anemone Bot...\"\n" +
+            "java -jar \"lib/${releaseName}-${version}.jar\" --spring.config.location=file:config/application.yaml\n"
+        
+        // README
+        file("${layout.buildDirectory.get()}/distributions/scripts/README.txt").text = "Anemone Bot (Java版) v${version}\r\n" +
+            "========================================\r\n" +
+            "\r\n" +
+            "快速开始：\r\n" +
+            "1. 复制 config/application.yaml.example 为 config/application.yaml\r\n" +
+            "2. 编辑 config/application.yaml，填入您的配置：\r\n" +
+            "   - deepseek-api-key: DeepSeek API 密钥\r\n" +
+            "   - admin-user-ids: 管理员 QQ 号\r\n" +
+            "   - shiro.token: OneBot 反向 WebSocket token（如需要）\r\n" +
+            "3. 双击运行 start.bat (Windows) 或 ./start.sh (Linux/Mac)\r\n" +
+            "\r\n" +
+            "配置文件说明：\r\n" +
+            "- config/application.yaml - 本地配置文件（不会被提交到 git）\r\n" +
+            "- 支持使用环境变量覆盖配置值\r\n" +
+            "\r\n" +
+            "更多信息请查看项目文档。\r\n"
+    }
+}
+
+// 让 release 任务依赖创建脚本
+tasks.named('release') {
+    dependsOn 'createStartScripts'
+    
+    from("${layout.buildDirectory.get()}/distributions/scripts") {
+        include 'start.bat'
+        include 'start.sh'
+        include 'README.txt'
+    }
 }

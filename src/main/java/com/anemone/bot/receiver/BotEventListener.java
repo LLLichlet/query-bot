@@ -7,7 +7,6 @@ import com.anemone.bot.service.PluginRegistry;
 import com.mikuac.shiro.annotation.AnyMessageHandler;
 import com.mikuac.shiro.annotation.common.Shiro;
 import com.mikuac.shiro.core.Bot;
-import com.mikuac.shiro.core.BotContainer;
 import com.mikuac.shiro.dto.event.message.AnyMessageEvent;
 
 import org.slf4j.Logger;
@@ -32,7 +31,6 @@ public class BotEventListener {
     
     private final PluginRegistry registry;
     private final BotConfig config;
-    private final BotContainer botContainer;
     
     @Lazy
     @Autowired(required = false)
@@ -43,10 +41,9 @@ public class BotEventListener {
     private List<MessageHandler> messageHandlers;
     
     @Autowired
-    public BotEventListener(PluginRegistry registry, BotConfig config, BotContainer botContainer) {
+    public BotEventListener(PluginRegistry registry, BotConfig config) {
         this.registry = registry;
         this.config = config;
-        this.botContainer = botContainer;
     }
     
     @PostConstruct
@@ -126,7 +123,7 @@ public class BotEventListener {
         }
     }
     
-    private void handleMessage(Bot bot, AnyMessageEvent event, String message) {
+    private void handleMessage(Bot bot, AnyMessageEvent event, String _message) {
         if (messageHandlers == null) {
             messageHandlers = registry.getMessagePlugins(false).stream()
                     .filter(p -> p.getHandler() instanceof MessageHandler)

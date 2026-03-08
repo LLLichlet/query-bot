@@ -210,4 +210,19 @@ public abstract class PluginHandler {
     protected boolean isGroup(AnyMessageEvent event) {
         return event.getGroupId() != null && event.getGroupId() > 0;
     }
+    
+    /**
+     * 处理错误（可重写）
+     * 
+     * 当 handle 方法抛出异常时调用，默认发送错误信息。
+     * 
+     * @param bot cq-bot 实例
+     * @param event 消息事件
+     * @param error 异常对象
+     * @return 异步操作
+     */
+    public CompletableFuture<Void> handleError(Bot bot, AnyMessageEvent event, Throwable error) {
+        logger.error("Handler error in {}", this.getClass().getSimpleName(), error);
+        return reply(bot, event, "处理出错: " + error.getMessage());
+    }
 }

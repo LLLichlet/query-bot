@@ -22,23 +22,64 @@ shiro:
 
 anemone:
   bot:
-    # AI API 配置
+    # ==================== AI API 配置 ====================
     deepseek-api-key: ${DEEPSEEK_API_KEY:YOUR_DEEPSEEK_API_KEY}
     deepseek-base-url: https://api.deepseek.com
     deepseek-model: deepseek-chat
     
-    # 功能开关
+    # ==================== 功能开关 ====================
+    # 数学定义查询
     math-enabled: true
+    # PJSK 谱面
     pjskpartiton-enabled: true
+    # 复读
     echo-enabled: true
+    # 午时游戏（俄罗斯轮盘赌）
+    highnoon-enabled: true
+    # 随机回复
+    random-enabled: true
+    # 数学谜题（20 Questions）
+    math-soup-enabled: true
+    # MCMOD 模组查询
+    mcmod-search-enabled: true
     
-    # 管理员配置（多个用逗号分隔）
+    # ==================== 管理员配置（多个用逗号分隔） ====================
     admin-user-ids: ${ADMIN_USER_IDS:YOUR_USER_ID}
     
-    # AI 参数 - 数学定义
+    # ==================== 数据目录 ====================
+    data-dir: data
+    
+    # ==================== AI 参数 - 数学定义 ====================
     math-temperature: 0.1
     math-max-tokens: 8192
     math-top-p: 0.1
+    
+    # ==================== AI 参数 - 随机回复 ====================
+    random-temperature: 0.8
+    random-max-tokens-min: 30
+    random-max-tokens-max: 100
+    random-top-p: 0.95
+    
+    # ==================== AI 参数 - 数学谜题 ====================
+    math-soup-temperature: 0.1
+    
+    # ==================== 复读配置 ====================
+    echo-probability: 0.01
+    echo-reverse-probability: 0.2
+    
+    # ==================== 系统设置 ====================
+    max-history-per-group: 50
+    max-ban-per-group: 10
+    buffer-interval-ms: 800.0
+    
+    # ==================== MCMOD 配置 ====================
+    mcmod-capture-selectors: class-title,class-text-top
+    
+    # ==================== 调试配置 ====================
+    debug-mode: false
+    debug-highnoon: false
+    debug-math-soup: false
+    debug-concurrent: false
 
 logging:
   level:

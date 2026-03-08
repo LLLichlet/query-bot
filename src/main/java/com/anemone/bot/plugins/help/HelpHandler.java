@@ -1,5 +1,13 @@
 package com.anemone.bot.plugins.help;
 
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.anemone.bot.base.Result;
 import com.anemone.bot.config.BotConfig;
 import com.anemone.bot.handler.PluginHandler;
@@ -7,14 +15,8 @@ import com.anemone.bot.service.PluginInfo;
 import com.anemone.bot.service.PluginRegistry;
 import com.mikuac.shiro.core.Bot;
 import com.mikuac.shiro.dto.event.message.AnyMessageEvent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * 帮助插件
@@ -131,12 +133,12 @@ public class HelpHandler extends PluginHandler {
         List<PluginInfo> plugins = registry.getCommandPlugins(false);
         
         if (plugins.isEmpty()) {
-            reply(bot, event, "Welcome to Anemone bot!\n\nNo features available");
+            reply(bot, event, "Welcome to Anemone bot(Java)!\n\nNo features available");
             return Result.err("no_features_available");
         }
         
         StringBuilder sb = new StringBuilder();
-        sb.append("Welcome to Anemone bot!");
+        sb.append("Welcome to Anemone bot(Java)!");
         
         // 命令插件
         boolean hasEnabledPlugin = false;

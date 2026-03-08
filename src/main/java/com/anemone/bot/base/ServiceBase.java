@@ -68,7 +68,6 @@ public abstract class ServiceBase<T extends ServiceBase<T>> {
     /**
      * 子类使用的获取实例方法（需要在子类中覆盖为 public static）
      */
-    @SuppressWarnings("unchecked")
     protected static <S extends ServiceBase<S>> S getInstanceInternal(Class<S> clazz) {
         return getInstance(clazz);
     }
