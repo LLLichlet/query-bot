@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.anemone'
-version = '1.0.0'
+version = '1.1.0'
 description = 'Anemone Bot - QQ群聊机器人 (Java版)'
 
 // 发布包名称
@@ -50,6 +50,9 @@ dependencies {
     // Selenium - 网页截图（MCMOD 查询功能需要）
     implementation 'org.seleniumhq.selenium:selenium-java:4.18.1'
     
+    // JLaTeXMath - LaTeX 公式渲染
+    implementation 'org.scilab.forge:jlatexmath:1.0.7'
+    
     // 配置处理
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     
@@ -62,15 +65,23 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-// ========== 打包配置：排除敏感配置文件 ==========
+// ========== 打包配置：区分开发与发布 ==========
 
-// 1. 排除 application.yaml 从打包
-processResources {
-    exclude 'application.yaml'
-    exclude 'application.yml'
+// 默认行为：bootRun 包含配置文件，release 排除配置文件
+
+// 创建一个专门用于发布的 processResources 任务
+tasks.register('releaseProcessResources', Copy) {
+    group = 'build'
+    description = '复制资源文件到发布目录（排除敏感配置）'
+    
+    from(sourceSets.main.resources) {
+        exclude 'application.yaml'
+        exclude 'application.yml'
+    }
+    into layout.buildDirectory.dir('release-resources')
 }
 
-// 2. 创建发布包任务
+// 1. 创建发布包任务
 tasks.register('release', Zip) {
     group = 'distribution'
     description = '创建发布包（不包含敏感配置）'
@@ -78,13 +89,46 @@ tasks.register('release', Zip) {
     archiveFileName = "Anemone-java-${version}.zip"
     destinationDirectory = layout.buildDirectory.dir('distributions')
     
-    // 等待 bootJar 任务完成
+    // 等待 bootJar 和自定义资源处理完成
     dependsOn bootJar
+    dependsOn releaseProcessResources
     
-    // 复制 fat jar 文件（包含所有依赖）
-    from(bootJar.archiveFile) {
+    // 复制 fat jar 文件，但使用排除配置后的资源重新打包
+    from({
+        // 解压 bootJar
+        def bootJarFile = bootJar.archiveFile.get().asFile
+        def tempDir = layout.buildDirectory.dir('release-temp').get().asFile
+        
+        // 清理并创建临时目录
+        if (tempDir.exists()) {
+            tempDir.deleteDir()
+        }
+        tempDir.mkdirs()
+        
+        copy {
+            from zipTree(bootJarFile)
+            into tempDir
+        }
+        
+        // 删除敏感配置文件
+        delete fileTree("${tempDir}/BOOT-INF/classes") {
+            include 'application.yaml'
+            include 'application.yml'
+        }
+        
+        // 用排除敏感配置的资源替换原资源
+        copy {
+            from releaseProcessResources.outputs.files
+            into "${tempDir}/BOOT-INF/classes"
+        }
+        
+        // 重新打包
+        def releaseJar = layout.buildDirectory.file("${releaseName}-${version}.jar").get().asFile
+        ant.zip(destfile: releaseJar.absolutePath, basedir: tempDir)
+        
+        releaseJar
+    }) {
         into 'lib'
-        rename { "${releaseName}-${version}.jar" }
     }
     
     // 复制配置模板

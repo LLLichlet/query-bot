@@ -10,12 +10,10 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 图片处理工具类
@@ -26,10 +24,6 @@ import java.util.Base64;
 public class ImageUtils {
     
     private static final Logger logger = LoggerFactory.getLogger(ImageUtils.class);
-    
-    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
-            .build();
     
     /**
      * 下载图片
@@ -44,31 +38,61 @@ public class ImageUtils {
     /**
      * 下载图片（带超时）
      * 
+     * 使用 NetworkUtils 进行 HTTP 请求。
+     * 
      * @param url 图片 URL
      * @param timeoutSeconds 超时时间（秒）
      * @return BufferedImage 对象，下载失败时返回 null
      */
     public static BufferedImage downloadImage(String url, int timeoutSeconds) {
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .timeout(Duration.ofSeconds(timeoutSeconds))
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                    .GET()
-                    .build();
-            
-            HttpResponse<byte[]> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofByteArray());
-            
-            if (response.statusCode() == 200) {
-                return ImageIO.read(new ByteArrayInputStream(response.body()));
-            } else {
-                logger.warn("Failed to download image from {}: HTTP {}", url, response.statusCode());
-                return null;
+            byte[] bytes = NetworkUtils.getBytes(url, timeoutSeconds);
+            if (bytes != null) {
+                return ImageIO.read(new ByteArrayInputStream(bytes));
             }
+            return null;
         } catch (Exception e) {
             logger.error("Error downloading image from {}: {}", url, e.getMessage());
             return null;
         }
+    }
+    
+    /**
+     * 异步下载图片
+     * 
+     * @param url 图片 URL
+     * @return CompletableFuture<BufferedImage>
+     */
+    public static CompletableFuture<BufferedImage> downloadImageAsync(String url) {
+        return downloadImageAsync(url, 10);
+    }
+    
+    /**
+     * 异步下载图片（带超时）
+     * 
+     * 使用 NetworkUtils 进行异步 HTTP 请求。
+     * 
+     * @param url 图片 URL
+     * @param timeoutSeconds 超时时间（秒）
+     * @return CompletableFuture<BufferedImage>
+     */
+    public static CompletableFuture<BufferedImage> downloadImageAsync(String url, int timeoutSeconds) {
+        return NetworkUtils.getBytesAsync(url, timeoutSeconds)
+                .thenApply(bytes -> {
+                    if (bytes != null) {
+                        try {
+                            return ImageIO.read(new ByteArrayInputStream(bytes));
+                        } catch (IOException e) {
+                            logger.error("Error reading image from bytes: {}", e.getMessage());
+                            return null;
+                        }
+                    }
+                    return null;
+                })
+                .exceptionally(e -> {
+                    logger.error("Error downloading image from {}: {}", url, e.getMessage());
+                    return null;
+                });
     }
     
     /**
@@ -105,6 +129,44 @@ public class ImageUtils {
      */
     public static String createCQImage(String base64Image) {
         return "[CQ:image,file=base64://" + base64Image + "]";
+    }
+    
+    /**
+     * 将 BufferedImage 直接转为 CQ 码图片消息（纯函数）
+     * 
+     * 将图片编码为 Base64 并包装为 QQ 的 CQ 码格式。
+     * 返回的字符串可直接通过 bot.sendGroupMsg() 或 bot.sendPrivateMsg() 发送。
+     * 
+     * @param image 图片对象
+     * @return CQ 码字符串，转换失败返回 null
+     */
+    public static String imageToCQCode(BufferedImage image) {
+        if (image == null) {
+            return null;
+        }
+        String base64 = imageToBase64(image);
+        if (base64 == null) {
+            return null;
+        }
+        return createCQImage(base64);
+    }
+    
+    /**
+     * 将 BufferedImage 转为 CQ 码（指定格式）
+     * 
+     * @param image 图片对象
+     * @param format 图片格式（PNG, JPEG 等）
+     * @return CQ 码字符串，转换失败返回 null
+     */
+    public static String imageToCQCode(BufferedImage image, String format) {
+        if (image == null) {
+            return null;
+        }
+        String base64 = imageToBase64(image, format);
+        if (base64 == null) {
+            return null;
+        }
+        return createCQImage(base64);
     }
     
     /**
@@ -193,6 +255,64 @@ public class ImageUtils {
      */
     public static BufferedImage createEmptyImage(int width, int height) {
         return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    }
+    
+    /**
+     * 垂直合并多张图片
+     * 
+     * 将多张图片按垂直方向拼接，每张图片居中显示，背景填充白色。
+     * 
+     * @param images 图片列表
+     * @return 合并后的图片，如果输入为空则返回 null
+     */
+    public static BufferedImage combineImagesVertically(List<BufferedImage> images) {
+        if (images == null || images.isEmpty()) {
+            return null;
+        }
+        
+        // 过滤掉 null 图片
+        List<BufferedImage> validImages = new ArrayList<>();
+        for (BufferedImage img : images) {
+            if (img != null) {
+                validImages.add(img);
+            }
+        }
+        
+        if (validImages.isEmpty()) {
+            return null;
+        }
+        
+        if (validImages.size() == 1) {
+            return validImages.get(0);
+        }
+        
+        // 计算合并后的尺寸
+        int width = 0;
+        int totalHeight = 0;
+        for (BufferedImage img : validImages) {
+            width = Math.max(width, img.getWidth());
+            totalHeight += img.getHeight();
+        }
+        
+        // 创建新图片
+        BufferedImage combined = new BufferedImage(
+            width, totalHeight, BufferedImage.TYPE_INT_ARGB
+        );
+        
+        Graphics2D g = combined.createGraphics();
+        g.setColor(java.awt.Color.WHITE);
+        g.fillRect(0, 0, width, totalHeight);
+        
+        // 绘制每张图片（居中）
+        int yOffset = 0;
+        for (BufferedImage img : validImages) {
+            int x = (width - img.getWidth()) / 2;
+            g.drawImage(img, x, yOffset, null);
+            yOffset += img.getHeight();
+        }
+        
+        g.dispose();
+        return combined;
     }
     
     /**

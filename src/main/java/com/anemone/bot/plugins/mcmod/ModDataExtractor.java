@@ -1,21 +1,27 @@
 package com.anemone.bot.plugins.mcmod;
 
-import com.anemone.bot.base.Result;
-import com.anemone.bot.config.BotConfig;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.imageio.ImageIO;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.edge.EdgeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.anemone.bot.base.Result;
+import com.anemone.bot.config.BotConfig;
 
 /**
  * MCMOD 模组数据提取器
@@ -29,12 +35,14 @@ public class ModDataExtractor {
     
     private static final Logger logger = LoggerFactory.getLogger(ModDataExtractor.class);
     
-    private final String captureSelectors;
     private final List<String> selectors;
+    
+    // 超时配置
+    private static final Duration PAGE_LOAD_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration IMPLICIT_WAIT = Duration.ofSeconds(5);
     
     public ModDataExtractor(BotConfig config) {
         String selectorsStr = config.getMcmodCaptureSelectors();
-        this.captureSelectors = selectorsStr;
         String actualSelectors = (selectorsStr == null || selectorsStr.isEmpty()) 
             ? "class-title,class-text-top" 
             : selectorsStr;
@@ -42,7 +50,9 @@ public class ModDataExtractor {
     }
     
     /**
-     * 提取模组页面截图
+     * 提取模组页面截图（同步方法）
+     * 
+     * 使用显式等待替代 Thread.sleep，提高效率。
      * 
      * @param modId 模组 ID
      * @return 截图列表
@@ -61,8 +71,15 @@ public class ModDataExtractor {
             
             driver.get(url);
             
-            // 等待页面加载
-            Thread.sleep(2000);
+            // 使用显式等待替代 Thread.sleep
+            WebDriverWait wait = new WebDriverWait(driver, PAGE_LOAD_TIMEOUT);
+            
+            // 等待页面主体加载完成
+            try {
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
+            } catch (Exception e) {
+                logger.warn("Page body not loaded within timeout, continuing anyway");
+            }
             
             // 隐藏顶部导航栏
             try {
@@ -76,14 +93,11 @@ public class ModDataExtractor {
                 logger.debug("Failed to hide header: {}", e.getMessage());
             }
             
-            // 等待元素渲染
-            Thread.sleep(1000);
-            
-            // 截取指定元素
+            // 等待并截图每个元素
             List<BufferedImage> images = new ArrayList<>();
             
             for (String selector : selectors) {
-                BufferedImage img = captureElement(driver, selector.trim());
+                BufferedImage img = captureElement(driver, selector.trim(), wait);
                 if (img != null) {
                     images.add(img);
                 }
@@ -122,7 +136,10 @@ public class ModDataExtractor {
             options.addArguments("--window-size=1920,2000");
             options.addArguments("--log-level=3");
             
-            return new EdgeDriver(options);
+            EdgeDriver driver = new EdgeDriver(options);
+            driver.manage().timeouts().implicitlyWait(IMPLICIT_WAIT);
+            
+            return driver;
         } catch (Exception e) {
             logger.error("Failed to create WebDriver", e);
             return null;
@@ -130,11 +147,20 @@ public class ModDataExtractor {
     }
     
     /**
-     * 截取元素截图
+     * 截取元素截图（使用显式等待）
      */
-    private BufferedImage captureElement(WebDriver driver, String className) {
+    private BufferedImage captureElement(WebDriver driver, String className, WebDriverWait wait) {
         try {
-            List<WebElement> elements = driver.findElements(By.className(className));
+            // 等待元素存在
+            List<WebElement> elements;
+            try {
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.className(className)));
+                elements = driver.findElements(By.className(className));
+            } catch (Exception e) {
+                logger.debug("Element not found after wait: {}", className);
+                return null;
+            }
+            
             if (elements.isEmpty()) {
                 logger.debug("Element not found: {}", className);
                 return null;
@@ -146,14 +172,20 @@ public class ModDataExtractor {
             ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
                 "arguments[0].scrollIntoView({block: 'start'});", element
             );
-            Thread.sleep(500);
+            
+            // 等待元素可见
+            try {
+                wait.until(ExpectedConditions.visibilityOf(element));
+            } catch (Exception e) {
+                logger.debug("Element not visible: {}", className);
+            }
             
             // 获取截图
             byte[] screenshot = element.getScreenshotAs(org.openqa.selenium.OutputType.BYTES);
             
             return ImageIO.read(new ByteArrayInputStream(screenshot));
             
-        } catch (Exception e) {
+        } catch (IOException | WebDriverException e) {
             logger.debug("Failed to capture element {}: {}", className, e.getMessage());
             return null;
         }

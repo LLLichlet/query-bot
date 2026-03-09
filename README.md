@@ -6,7 +6,7 @@
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://openjdk.org/)
 [![Gradle](https://img.shields.io/badge/Gradle-8.5-blue)](https://gradle.org/)
 
-**项目状态**: 稳定版 (v1.0.0) | 功能对齐 Python v2.4.0，已成为主要维护版本
+**项目状态**: 稳定版 (v1.1.0) | 功能对齐 Python v2.4.0 + LaTeX 渲染，已成为主要维护版本
 
 ## 简介
 
@@ -29,6 +29,7 @@ Anemone Bot (Java 版) 是原 Python 版机器人的 Java 重构实现，采用 
 | 午时已到 | `/highnoon` (别名: `/午时已到`) | 俄罗斯轮盘赌禁言游戏 | ✅ |
 | 午时开枪 | `/fire` (别名: `/开枪`) | 参与游戏 | ✅ |
 | MCMOD 查询 | `/mcmod` | 查询 MCMOD 百科模组信息 | ✅ |
+| LaTeX 渲染 | `/latex` | 渲染数学公式为图片 | ✅ |
 | 随机回复 | 自动触发 | AI 基于上下文的回复 | ✅ |
 | 状态控制 | `/admin` (别名: `/状态控制`) | 管理员功能 | ✅ |
 | 申请令牌 | `/token` (私聊) | 获取管理员令牌 | ✅ |

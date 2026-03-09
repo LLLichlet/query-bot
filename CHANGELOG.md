@@ -6,6 +6,44 @@
 
 ---
 
+### Version 1.1.0 (2026-03-09)
+
+**新增功能**
+
+- 新增 **LaTeX 公式渲染插件** (`plugins/latex/`)
+  - 渲染数学公式：`/latex` 或 `/formula`
+  - 使用 JLaTeXMath 库本地渲染，无需 AI
+  - 支持分数、积分、矩阵等各种 LaTeX 语法
+  - 配置项 `latex-enabled`: 功能开关（默认开启）
+
+**架构改进**
+
+- 重构 HTTP 工具类 (`utils/NetworkUtils`)
+  - 统一封装 GET/POST 同步和异步请求
+  - 支持自定义超时和请求头
+  - 所有网络请求使用标准 `java.net.http.HttpClient`
+
+- 重构图片处理 (`utils/ImageUtils`)
+  - 使用 `NetworkUtils` 进行图片下载
+  - 新增 `imageToCQCode()` 纯函数，简化图片发送流程
+  - 新增 `combineImagesVertically()` 垂直合并图片
+
+- 优化异步处理
+  - LaTeX 渲染使用专用线程池，避免阻塞 common pool
+  - MCMOD 查询使用专用线程池处理 Selenium 操作
+  - PJSK 谱面下载改为并行异步，提升性能
+
+- 优化 MCMOD 查询 (`plugins/mcmod/`)
+  - 使用 Selenium 显式等待替代 `Thread.sleep`
+  - 减少等待时间，提高响应速度
+
+**Bug 修复**
+
+- 修复插件中重复定义 `logger` 的问题
+- 修复未使用字段和 import 的警告
+
+---
+
 ### Version 1.0.0 (2026-03-09) 🎉
 
 **正式发布 - 功能对齐 Python v2.4.0**
@@ -175,7 +213,7 @@
 
 ---
 
-**最新版本**: 1.0.0 (稳定版)  
+**最新版本**: 1.1.0 (稳定版)  
 **Python 对照版本**: 2.4.0  
 **状态**: Java 版本已成为主要维护版本  
 查看完整项目信息：[README.md](README.md)

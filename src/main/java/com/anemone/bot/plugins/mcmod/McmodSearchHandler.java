@@ -1,26 +1,35 @@
 package com.anemone.bot.plugins.mcmod;
 
-import cn.hutool.json.JSONArray;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
-import com.anemone.bot.base.Result;
-import com.anemone.bot.config.BotConfig;
-import com.anemone.bot.handler.PluginHandler;
-import com.anemone.bot.service.PluginRegistry;
-import com.anemone.bot.utils.TextUtils;
-import com.mikuac.shiro.core.Bot;
-import com.mikuac.shiro.dto.event.message.AnyMessageEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
+import com.anemone.bot.base.Result;
+import com.anemone.bot.config.BotConfig;
+import com.anemone.bot.handler.PluginHandler;
+import com.anemone.bot.service.PluginRegistry;
+import com.anemone.bot.utils.ImageUtils;
+import com.anemone.bot.utils.TextUtils;
+import com.mikuac.shiro.core.Bot;
+import com.mikuac.shiro.dto.event.message.AnyMessageEvent;
+
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import jakarta.annotation.PostConstruct;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * MCMOD 模组查询处理器
@@ -41,8 +50,6 @@ import java.util.concurrent.CompletableFuture;
 @Component
 public class McmodSearchHandler extends PluginHandler {
     
-    private static final Logger logger = LoggerFactory.getLogger(McmodSearchHandler.class);
-    
     private final PluginRegistry registry;
     private final BotConfig config;
     
@@ -50,6 +57,13 @@ public class McmodSearchHandler extends PluginHandler {
     private final List<ModInfo> modsList = new ArrayList<>();
     private final Map<String, Integer> nameToId = new HashMap<>();
     private final Map<String, Integer> abbrToId = new HashMap<>();
+    
+    // Selenium 操作使用专用线程池（阻塞时间长，避免占用 common pool）
+    private final ExecutorService seleniumExecutor = Executors.newFixedThreadPool(2, r -> {
+        Thread t = new Thread(r, "mcmod-selenium-" + System.nanoTime());
+        t.setDaemon(true);
+        return t;
+    });
     
     @Autowired
     public McmodSearchHandler(PluginRegistry registry, BotConfig config) {
@@ -71,6 +85,14 @@ public class McmodSearchHandler extends PluginHandler {
         
         // 加载模组数据
         loadModData();
+    }
+    
+    /**
+     * 应用关闭时清理线程池
+     */
+    @jakarta.annotation.PreDestroy
+    public void destroy() {
+        seleniumExecutor.shutdown();
     }
     
     /**
@@ -115,7 +137,7 @@ public class McmodSearchHandler extends PluginHandler {
                 
                 logger.info("Loaded {} mods from mcmod_data.json", modsList.size());
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error("Failed to load mcmod_data.json", e);
         }
     }
@@ -146,7 +168,7 @@ public class McmodSearchHandler extends PluginHandler {
     }
     
     /**
-     * 处理模组查询
+     * 处理模组查询（使用专用线程池执行 Selenium 操作）
      */
     private CompletableFuture<Void> processModQuery(Bot bot, AnyMessageEvent event, ModInfo mod) {
         return CompletableFuture.supplyAsync(() -> {
@@ -165,7 +187,7 @@ public class McmodSearchHandler extends PluginHandler {
                 }
                 
                 // 合并图片
-                java.awt.image.BufferedImage combined = combineImages(images);
+                java.awt.image.BufferedImage combined = ImageUtils.combineImagesVertically(images);
                 if (combined == null) {
                     return Result.err("image_process_failed");
                 }
@@ -175,7 +197,7 @@ public class McmodSearchHandler extends PluginHandler {
                 logger.error("Failed to process mod query", e);
                 return Result.err("screenshot_failed");
             }
-        }).thenCompose(result -> handleImageResult(bot, event, result));
+        }, seleniumExecutor).thenCompose(result -> handleImageResult(bot, event, result));
     }
     
     /**
@@ -191,15 +213,12 @@ public class McmodSearchHandler extends PluginHandler {
         
         java.awt.image.BufferedImage image = result.getValue();
         
-        // 转换为 Base64 并发送
-        try {
-            String base64 = com.anemone.bot.utils.ImageUtils.imageToBase64(image);
-            String cqCode = com.anemone.bot.utils.ImageUtils.createCQImage(base64);
-            return send(bot, event, cqCode);
-        } catch (Exception e) {
-            logger.error("Failed to send image", e);
+        // 转换为 CQ 码并发送（纯函数）
+        String cqCode = ImageUtils.imageToCQCode(image);
+        if (cqCode == null) {
             return reply(bot, event, getErrorMessage("image_process_failed"));
         }
+        return send(bot, event, cqCode);
     }
     
     /**
@@ -283,53 +302,5 @@ public class McmodSearchHandler extends PluginHandler {
             return null;
         }
         return modsList.get(new Random().nextInt(modsList.size()));
-    }
-    
-    /**
-     * 合并多张图片
-     */
-    private java.awt.image.BufferedImage combineImages(List<java.awt.image.BufferedImage> images) {
-        List<java.awt.image.BufferedImage> validImages = new ArrayList<>();
-        for (java.awt.image.BufferedImage img : images) {
-            if (img != null) {
-                validImages.add(img);
-            }
-        }
-        
-        if (validImages.isEmpty()) {
-            return null;
-        }
-        
-        if (validImages.size() == 1) {
-            return validImages.get(0);
-        }
-        
-        // 计算合并后的尺寸
-        int width = 0;
-        int totalHeight = 0;
-        for (java.awt.image.BufferedImage img : validImages) {
-            width = Math.max(width, img.getWidth());
-            totalHeight += img.getHeight();
-        }
-        
-        // 创建新图片
-        java.awt.image.BufferedImage combined = new java.awt.image.BufferedImage(
-            width, totalHeight, java.awt.image.BufferedImage.TYPE_INT_ARGB
-        );
-        
-        java.awt.Graphics2D g = combined.createGraphics();
-        g.setColor(java.awt.Color.WHITE);
-        g.fillRect(0, 0, width, totalHeight);
-        
-        // 绘制每张图片
-        int yOffset = 0;
-        for (java.awt.image.BufferedImage img : validImages) {
-            int x = (width - img.getWidth()) / 2;
-            g.drawImage(img, x, yOffset, null);
-            yOffset += img.getHeight();
-        }
-        
-        g.dispose();
-        return combined;
     }
 }

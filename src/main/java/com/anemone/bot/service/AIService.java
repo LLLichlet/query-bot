@@ -1,19 +1,19 @@
 package com.anemone.bot.service;
 
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import com.anemone.bot.base.Result;
 import com.anemone.bot.config.BotConfig;
 import com.anemone.bot.protocols.AIServiceProtocol;
 import com.anemone.bot.protocols.ServiceLocator;
+import com.anemone.bot.utils.NetworkUtils;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -114,20 +114,20 @@ public class AIService implements AIServiceProtocol {
                 
                 logger.debug("Sending AI request to {} with model {}", url, config.getDeepseekModel());
                 
-                HttpResponse response = HttpRequest.post(url)
-                        .header("Authorization", "Bearer " + config.getDeepseekApiKey())
-                        .header("Content-Type", "application/json")
-                        .body(requestBody.toString())
-                        .timeout(60000) // 60秒超时
-                        .execute();
+                // 使用 NetworkUtils 发送请求
+                Map<String, String> headers = Map.of(
+                    "Authorization", "Bearer " + config.getDeepseekApiKey()
+                );
                 
-                if (response.getStatus() != 200) {
-                    logger.error("AI API error: HTTP {} - {}", response.getStatus(), response.body());
-                    return Result.err("AI service error: HTTP " + response.getStatus());
+                String responseBody = NetworkUtils.postJson(url, requestBody.toString(), headers, 60);
+                
+                if (responseBody == null) {
+                    logger.error("AI API request failed");
+                    return Result.err("AI service error: request failed");
                 }
                 
                 // 解析响应
-                JSONObject responseJson = new JSONObject(response.body());
+                JSONObject responseJson = new JSONObject(responseBody);
                 JSONArray choices = responseJson.getJSONArray("choices");
                 
                 if (choices == null || choices.isEmpty()) {

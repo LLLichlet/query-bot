@@ -42,6 +42,8 @@ anemone:
     math-soup-enabled: true
     # MCMOD 模组查询
     mcmod-search-enabled: true
+    # LaTeX 公式渲染
+    latex-enabled: true
     
     # ==================== 管理员配置（多个用逗号分隔） ====================
     admin-user-ids: ${ADMIN_USER_IDS:YOUR_USER_ID}

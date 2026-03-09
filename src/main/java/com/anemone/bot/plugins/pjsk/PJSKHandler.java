@@ -250,63 +250,65 @@ public class PJSKHandler extends PluginHandler {
     
     /**
      * 处理谱面图片下载和发送
+     * 
+     * 使用异步并行下载提升性能
      */
     private CompletableFuture<Void> processChart(Bot bot, AnyMessageEvent event, String songId, String difficulty) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                // 构建 URL
-                String bgUrl = "https://sdvx.in/prsk/bg/" + songId + "bg.png";
-                String barUrl = "https://sdvx.in/prsk/bg/" + songId + "bar.png";
-                String dataUrl = "https://sdvx.in/prsk/obj/data" + songId + difficulty + ".png";
-                
-                logger.debug("Downloading images for song {}: bg={}, data={}", songId, bgUrl, dataUrl);
-                
-                // 使用 ImageUtils 下载图片
-                BufferedImage bg = ImageUtils.downloadImage(bgUrl);
-                BufferedImage bar = ImageUtils.downloadImage(barUrl);
-                BufferedImage data = ImageUtils.downloadImage(dataUrl);
-                
-                if (bg == null || bar == null || data == null) {
-                    throw new RuntimeException("download_failed");
-                }
-                
-                // 使用 ImageUtils 合并图片
-                BufferedImage merged = ImageUtils.mergeImages(bg, data, bar);
-                if (merged == null) {
-                    throw new RuntimeException("merge_failed");
-                }
-                
-                // 生成 CQ 码
-                String base64Image = ImageUtils.imageToBase64(merged);
-                if (base64Image == null) {
-                    throw new RuntimeException("merge_failed");
-                }
-                
-                return ImageUtils.createCQImage(base64Image);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }).thenCompose(cqCode -> {
-            // 发送图片
-            try {
-                Long groupId = event.getGroupId();
-                if (groupId != null && groupId > 0) {
-                    bot.sendGroupMsg(groupId, cqCode, false);
-                } else {
-                    bot.sendPrivateMsg(event.getUserId(), cqCode, false);
-                }
-                return CompletableFuture.completedFuture(null);
-            } catch (Exception e) {
-                logger.error("Failed to send image", e);
-                return reply(bot, event, getErrorMessage("merge_failed"));
-            }
-        }).exceptionally(e -> {
-            logger.error("Failed to process chart", e);
-            String errorMsg = e.getCause() != null && e.getCause().getMessage() != null 
-                    ? getErrorMessage(e.getCause().getMessage()) 
-                    : getErrorMessage("download_failed");
-            reply(bot, event, errorMsg);
-            return null;
-        });
+        // 构建 URL
+        String bgUrl = "https://sdvx.in/prsk/bg/" + songId + "bg.png";
+        String barUrl = "https://sdvx.in/prsk/bg/" + songId + "bar.png";
+        String dataUrl = "https://sdvx.in/prsk/obj/data" + songId + difficulty + ".png";
+        
+        logger.debug("Downloading images for song {}: bg={}, data={}", songId, bgUrl, dataUrl);
+        
+        // 并行异步下载三张图片
+        CompletableFuture<BufferedImage> bgFuture = ImageUtils.downloadImageAsync(bgUrl);
+        CompletableFuture<BufferedImage> barFuture = ImageUtils.downloadImageAsync(barUrl);
+        CompletableFuture<BufferedImage> dataFuture = ImageUtils.downloadImageAsync(dataUrl);
+        
+        // 等待所有下载完成
+        return CompletableFuture.allOf(bgFuture, barFuture, dataFuture)
+                .thenCompose(v -> {
+                    BufferedImage bg = bgFuture.join();
+                    BufferedImage bar = barFuture.join();
+                    BufferedImage data = dataFuture.join();
+                    
+                    if (bg == null || bar == null || data == null) {
+                        return CompletableFuture.failedFuture(new RuntimeException("download_failed"));
+                    }
+                    
+                    // 使用 ImageUtils 合并图片
+                    BufferedImage merged = ImageUtils.mergeImages(bg, data, bar);
+                    
+                    // 转换为 CQ 码（纯函数）
+                    String cqCode = ImageUtils.imageToCQCode(merged);
+                    if (cqCode == null) {
+                        return CompletableFuture.failedFuture(new RuntimeException("merge_failed"));
+                    }
+                    return CompletableFuture.completedFuture(cqCode);
+                })
+                .thenCompose(cqCode -> {
+                    // 发送图片
+                    try {
+                        Long groupId = event.getGroupId();
+                        if (groupId != null && groupId > 0) {
+                            bot.sendGroupMsg(groupId, cqCode, false);
+                        } else {
+                            bot.sendPrivateMsg(event.getUserId(), cqCode, false);
+                        }
+                        return CompletableFuture.completedFuture(null);
+                    } catch (Exception e) {
+                        logger.error("Failed to send image", e);
+                        return reply(bot, event, getErrorMessage("merge_failed"));
+                    }
+                })
+                .exceptionally(e -> {
+                    logger.error("Failed to process chart", e);
+                    String errorMsg = e.getCause() != null && e.getCause().getMessage() != null 
+                            ? getErrorMessage(e.getCause().getMessage()) 
+                            : getErrorMessage("download_failed");
+                    reply(bot, event, errorMsg);
+                    return null;
+                });
     }
 }

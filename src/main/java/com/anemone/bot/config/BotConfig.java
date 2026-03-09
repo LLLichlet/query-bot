@@ -39,6 +39,7 @@ public class BotConfig {
     private boolean mathSoupEnabled = true;
     private boolean echoEnabled = true;
     private boolean mcmodSearchEnabled = true;
+    private boolean latexEnabled = true;
     
     // ==================== 调试配置 ====================
     private boolean debugMode = false;
@@ -109,6 +110,9 @@ public class BotConfig {
     
     public boolean isMcmodSearchEnabled() { return mcmodSearchEnabled; }
     public void setMcmodSearchEnabled(boolean mcmodSearchEnabled) { this.mcmodSearchEnabled = mcmodSearchEnabled; }
+    
+    public boolean isLatexEnabled() { return latexEnabled; }
+    public void setLatexEnabled(boolean latexEnabled) { this.latexEnabled = latexEnabled; }
     
     public boolean isDebugMode() { return debugMode; }
     public void setDebugMode(boolean debugMode) { this.debugMode = debugMode; }
@@ -199,6 +203,7 @@ public class BotConfig {
             case "math_soup" -> mathSoupEnabled;
             case "echo" -> echoEnabled;
             case "mcmod_search" -> mcmodSearchEnabled;
+            case "latex" -> latexEnabled;
             default -> true;
         };
     }
