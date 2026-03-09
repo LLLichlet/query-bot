@@ -81,20 +81,17 @@ tasks.register('releaseProcessResources', Copy) {
     into layout.buildDirectory.dir('release-resources')
 }
 
-// 1. 创建发布包任务
-tasks.register('release', Zip) {
-    group = 'distribution'
-    description = '创建发布包（不包含敏感配置）'
+// 1. 创建发布用的 jar 任务（排除敏感配置）
+tasks.register('releaseJar', Jar) {
+    group = 'build'
+    description = '创建发布用的 fat JAR（不包含敏感配置）'
     
-    archiveFileName = "Anemone-java-${version}.zip"
-    destinationDirectory = layout.buildDirectory.dir('distributions')
-    
-    // 等待 bootJar 和自定义资源处理完成
     dependsOn bootJar
     dependsOn releaseProcessResources
     
-    // 复制 fat jar 文件，但使用排除配置后的资源重新打包
-    from({
+    archiveFileName = "${releaseName}-${version}.jar"
+    
+    doFirst {
         // 解压 bootJar
         def bootJarFile = bootJar.archiveFile.get().asFile
         def tempDir = layout.buildDirectory.dir('release-temp').get().asFile
@@ -122,12 +119,24 @@ tasks.register('release', Zip) {
             into "${tempDir}/BOOT-INF/classes"
         }
         
-        // 重新打包
-        def releaseJar = layout.buildDirectory.file("${releaseName}-${version}.jar").get().asFile
-        ant.zip(destfile: releaseJar.absolutePath, basedir: tempDir)
-        
-        releaseJar
-    }) {
+        // 设置此任务的源文件为临时目录
+        from tempDir
+    }
+}
+
+// 2. 创建发布包任务
+tasks.register('release', Zip) {
+    group = 'distribution'
+    description = '创建发布包（不包含敏感配置）'
+    
+    archiveFileName = "Anemone-java-${version}.zip"
+    destinationDirectory = layout.buildDirectory.dir('distributions')
+    
+    // 等待 releaseJar 完成
+    dependsOn releaseJar
+    
+    // 复制发布用的 jar
+    from(releaseJar.archiveFile) {
         into 'lib'
     }
     
