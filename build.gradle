@@ -93,8 +93,7 @@ tasks.register('release', Zip) {
     dependsOn bootJar
     dependsOn releaseProcessResources
     
-    // 复制 fat jar 文件，但使用排除配置后的资源重新打包
-    from({
+    doFirst {
         // 解压 bootJar
         def bootJarFile = bootJar.archiveFile.get().asFile
         def tempDir = layout.buildDirectory.dir('release-temp').get().asFile
@@ -122,12 +121,13 @@ tasks.register('release', Zip) {
             into "${tempDir}/BOOT-INF/classes"
         }
         
-        // 重新打包
+        // 重新打包为 jar
         def releaseJar = layout.buildDirectory.file("${releaseName}-${version}.jar").get().asFile
         ant.zip(destfile: releaseJar.absolutePath, basedir: tempDir)
-        
-        releaseJar
-    }) {
+    }
+    
+    // 复制发布用的 jar
+    from(layout.buildDirectory.file("${releaseName}-${version}.jar")) {
         into 'lib'
     }
     
