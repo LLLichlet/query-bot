@@ -81,7 +81,7 @@ tasks.register('releaseProcessResources', Copy) {
     into layout.buildDirectory.dir('release-resources')
 }
 
-// 1. 创建发布包任务
+// 1. 创建发布包任务（排除敏感配置）
 tasks.register('release', Zip) {
     group = 'distribution'
     description = '创建发布包（不包含敏感配置）'
@@ -219,12 +219,9 @@ tasks.register('createStartScripts') {
 }
 
 // 让 release 任务依赖创建脚本
-tasks.named('release') {
-    dependsOn 'createStartScripts'
-    
-    from("${layout.buildDirectory.get()}/distributions/scripts") {
-        include 'start.bat'
-        include 'start.sh'
-        include 'README.txt'
-    }
+release.dependsOn 'createStartScripts'
+release.from("${layout.buildDirectory.get()}/distributions/scripts") {
+    include 'start.bat'
+    include 'start.sh'
+    include 'README.txt'
 }
