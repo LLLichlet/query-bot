@@ -8,15 +8,12 @@ group = 'com.anemone'
 version = '1.1.0'
 description = 'Anemone Bot - QQ群聊机器人 (Java版)'
 
-// 发布包名称
 ext.releaseName = 'Anemone-java'
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
-    
-    // 保留参数名（Spring 6.x 需要）
     compileJava {
         options.compilerArgs.add('-parameters')
     }
@@ -27,36 +24,17 @@ repositories {
 }
 
 dependencies {
-    // Spring Boot
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    
-    // Jakarta 注解（Java 9+ 替代 javax.annotation）
     implementation 'jakarta.annotation:jakarta.annotation-api:2.1.1'
-    
-    // Shiro - 基于 OneBot 协议的 QQ 机器人框架 (使用稳定版)
     implementation 'com.mikuac:shiro:2.3.9'
-    
-    // JSON 处理
     implementation 'com.alibaba.fastjson2:fastjson2:2.0.53'
-    
-    // HTTP 客户端
     implementation 'cn.hutool:hutool-http:5.8.26'
     implementation 'cn.hutool:hutool-json:5.8.26'
-    
-    // 工具库
     implementation 'org.apache.commons:commons-lang3:3.14.0'
-    
-    // Selenium - 网页截图（MCMOD 查询功能需要）
     implementation 'org.seleniumhq.selenium:selenium-java:4.18.1'
-    
-    // JLaTeXMath - LaTeX 公式渲染
     implementation 'org.scilab.forge:jlatexmath:1.0.7'
-    
-    // 配置处理
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    
-    // 测试
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
@@ -67,11 +45,8 @@ tasks.named('test') {
 
 // ========== 打包配置：区分开发与发布 ==========
 
-// 创建一个专门用于发布的 processResources 任务
+// 1. 复制资源到发布目录（排除敏感配置）
 tasks.register('releaseProcessResources', Copy) {
-    group = 'build'
-    description = '复制资源文件到发布目录（排除敏感配置）'
-    
     from(sourceSets.main.resources) {
         exclude 'application.yaml'
         exclude 'application.yml'
@@ -79,49 +54,39 @@ tasks.register('releaseProcessResources', Copy) {
     into layout.buildDirectory.dir('release-resources')
 }
 
-// 创建发布包任务
-tasks.register('release', Zip) {
-    group = 'distribution'
-    description = '创建发布包（不包含敏感配置）'
+// 2. 创建排除敏感配置的 fat JAR（标准 Zip 任务）
+tasks.register('releaseJar', Zip) {
+    archiveFileName = "${releaseName}-${version}.jar"
+    destinationDirectory = layout.buildDirectory
     
+    dependsOn bootJar
+    dependsOn releaseProcessResources
+    
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    
+    // 从 bootJar 复制所有内容
+    from(zipTree(bootJar.archiveFile))
+    
+    // 排除敏感配置文件（使用精确路径匹配）
+    exclude 'BOOT-INF/classes/application.yaml'
+    exclude 'BOOT-INF/classes/application.yml'
+    
+    // 用处理后的资源目录覆盖原资源
+    from(releaseProcessResources.destinationDir) {
+        into 'BOOT-INF/classes'
+    }
+}
+
+// 3. 创建发布包
+tasks.register('release', Zip) {
     archiveFileName = "Anemone-java-${version}.zip"
     destinationDirectory = layout.buildDirectory.dir('distributions')
     
-    // 等待 bootJar 和自定义资源处理完成
-    dependsOn bootJar
-    dependsOn releaseProcessResources
+    dependsOn releaseJar
     dependsOn 'createStartScripts'
     
-    // 复制处理后的 jar（排除敏感配置）
-    from({
-        // 创建排除敏感配置的临时 jar
-        def originalJar = bootJar.archiveFile.get().asFile
-        def tempJar = layout.buildDirectory.file("${releaseName}-${version}.jar").get().asFile
-        
-        // 使用 Java 的 Zip 操作
-        java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(new FileInputStream(originalJar))
-        java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(new FileOutputStream(tempJar))
-        
-        java.util.zip.ZipEntry entry
-        while ((entry = zis.getNextEntry()) != null) {
-            String name = entry.getName()
-            // 跳过敏感配置文件（精确匹配，处理不同系统的路径分隔符）
-            if (name.endsWith('/application.yaml') || name.endsWith('/application.yml')) {
-                // 保留 application-example.yaml
-                if (!name.contains('example')) {
-                    continue
-                }
-            }
-            zos.putNextEntry(entry)
-            zos.write(zis.readAllBytes())
-            zos.closeEntry()
-        }
-        
-        zis.close()
-        zos.close()
-        
-        tempJar
-    }) {
+    // 复制处理后的 jar
+    from(releaseJar.archiveFile) {
         into 'lib'
     }
     
@@ -131,7 +96,7 @@ tasks.register('release', Zip) {
         rename { 'application.yaml.example' }
     }
     
-    // 复制 prompts 等资源（不包含配置文件）
+    // 复制其他资源
     from('src/main/resources') {
         include 'prompts/**'
         include '*.json'
@@ -146,68 +111,67 @@ tasks.register('release', Zip) {
     }
 }
 
-// 创建简化版启动脚本
+// 4. 创建启动脚本
 tasks.register('createStartScripts') {
-    group = 'distribution'
     doLast {
-        mkdir("${layout.buildDirectory.get()}/distributions/scripts")
+        def scriptDir = layout.buildDirectory.dir('distributions/scripts').get().asFile
+        scriptDir.mkdirs()
         
-        // Windows 启动脚本
-        file("${layout.buildDirectory.get()}/distributions/scripts/start.bat").text = "@echo off\r\n" +
-            "chcp 65001 >nul\r\n" +
-            "echo =========================================\r\n" +
-            "echo   Anemone Bot (Java) v${version}\r\n" +
-            "echo =========================================\r\n" +
-            "echo.\r\n" +
-            "echo 请先复制 config/application.yaml.example 为 config/application.yaml\r\n" +
-            "echo 并填入您的配置信息。\r\n" +
-            "echo.\r\n" +
-            "\r\n" +
-            "if not exist \"config\\application.yaml\" (\r\n" +
-            "    echo [错误] 未找到 config/application.yaml\r\n" +
-            "    echo 请从 application.yaml.example 创建配置文件\r\n" +
-            "    pause\r\n" +
-            "    exit /b 1\r\n" +
-            ")\r\n" +
-            "\r\n" +
-            "echo 正在启动 Anemone Bot...\r\n" +
-            "java -jar \"lib\\${releaseName}-${version}.jar\" --spring.config.location=file:config/application.yaml\r\n" +
-            "pause\r\n"
+        // Windows
+        new File(scriptDir, 'start.bat').text = """@echo off
+chcp 65001 >nul
+echo =========================================
+echo   Anemone Bot (Java) v${version}
+echo =========================================
+echo.
+echo 请先复制 config/application.yaml.example 为 config/application.yaml
+echo 并填入您的配置信息。
+echo.
+if not exist "config\\application.yaml" (
+    echo [错误] 未找到 config/application.yaml
+    echo 请从 application.yaml.example 创建配置文件
+    pause
+    exit /b 1
+)
+echo 正在启动 Anemone Bot...
+java -jar "lib\\${releaseName}-${version}.jar" --spring.config.location=file:config/application.yaml
+pause
+"""
         
-        // Linux/Mac 启动脚本
-        file("${layout.buildDirectory.get()}/distributions/scripts/start.sh").text = "#!/bin/bash\n" +
-            "echo \"=========================================\"\n" +
-            "echo \"  Anemone Bot (Java) v${version}\"\n" +
-            "echo \"=========================================\"\n" +
-            "echo \"\"\n" +
-            "echo \"请确保 config/application.yaml 已配置\"\n" +
-            "echo \"\"\n" +
-            "\n" +
-            "if [ ! -f \"config/application.yaml\" ]; then\n" +
-            "    echo \"[错误] 未找到 config/application.yaml\"\n" +
-            "    echo \"请从 application.yaml.example 创建配置文件\"\n" +
-            "    exit 1\n" +
-            "fi\n" +
-            "\n" +
-            "echo \"正在启动 Anemone Bot...\"\n" +
-            "java -jar \"lib/${releaseName}-${version}.jar\" --spring.config.location=file:config/application.yaml\n"
+        // Linux/Mac
+        new File(scriptDir, 'start.sh').text = """#!/bin/bash
+echo "========================================="
+echo "  Anemone Bot (Java) v${version}"
+echo "========================================="
+echo ""
+echo "请确保 config/application.yaml 已配置"
+echo ""
+if [ ! -f "config/application.yaml" ]; then
+    echo "[错误] 未找到 config/application.yaml"
+    echo "请从 application.yaml.example 创建配置文件"
+    exit 1
+fi
+echo "正在启动 Anemone Bot..."
+java -jar "lib/${releaseName}-${version}.jar" --spring.config.location=file:config/application.yaml
+"""
         
         // README
-        file("${layout.buildDirectory.get()}/distributions/scripts/README.txt").text = "Anemone Bot (Java版) v${version}\r\n" +
-            "========================================\r\n" +
-            "\r\n" +
-            "快速开始：\r\n" +
-            "1. 复制 config/application.yaml.example 为 config/application.yaml\r\n" +
-            "2. 编辑 config/application.yaml，填入您的配置：\r\n" +
-            "   - deepseek-api-key: DeepSeek API 密钥\r\n" +
-            "   - admin-user-ids: 管理员 QQ 号\r\n" +
-            "   - shiro.token: OneBot 反向 WebSocket token（如需要）\r\n" +
-            "3. 双击运行 start.bat (Windows) 或 ./start.sh (Linux/Mac)\r\n" +
-            "\r\n" +
-            "配置文件说明：\r\n" +
-            "- config/application.yaml - 本地配置文件（不会被提交到 git）\r\n" +
-            "- 支持使用环境变量覆盖配置值\r\n" +
-            "\r\n" +
-            "更多信息请查看项目文档。\r\n"
+        new File(scriptDir, 'README.txt').text = """Anemone Bot (Java版) v${version}
+========================================
+
+快速开始：
+1. 复制 config/application.yaml.example 为 config/application.yaml
+2. 编辑 config/application.yaml，填入您的配置：
+   - deepseek-api-key: DeepSeek API 密钥
+   - admin-user-ids: 管理员 QQ 号
+   - shiro.token: OneBot 反向 WebSocket token（如需要）
+3. 双击运行 start.bat (Windows) 或 ./start.sh (Linux/Mac)
+
+配置文件说明：
+- config/application.yaml - 本地配置文件（不会被提交到 git）
+- 支持使用环境变量覆盖配置值
+
+更多信息请查看项目文档。
+"""
     }
 }
