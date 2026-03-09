@@ -67,8 +67,6 @@ tasks.named('test') {
 
 // ========== 打包配置：区分开发与发布 ==========
 
-// 默认行为：bootRun 包含配置文件，release 排除配置文件
-
 // 创建一个专门用于发布的 processResources 任务
 tasks.register('releaseProcessResources', Copy) {
     group = 'build'
@@ -81,7 +79,7 @@ tasks.register('releaseProcessResources', Copy) {
     into layout.buildDirectory.dir('release-resources')
 }
 
-// 1. 创建发布包任务（排除敏感配置）
+// 创建发布包任务
 tasks.register('release', Zip) {
     group = 'distribution'
     description = '创建发布包（不包含敏感配置）'
@@ -92,42 +90,38 @@ tasks.register('release', Zip) {
     // 等待 bootJar 和自定义资源处理完成
     dependsOn bootJar
     dependsOn releaseProcessResources
+    dependsOn 'createStartScripts'
     
-    doFirst {
-        // 解压 bootJar
-        def bootJarFile = bootJar.archiveFile.get().asFile
-        def tempDir = layout.buildDirectory.dir('release-temp').get().asFile
+    // 复制处理后的 jar（排除敏感配置）
+    from({
+        // 创建排除敏感配置的临时 jar
+        def originalJar = bootJar.archiveFile.get().asFile
+        def tempJar = layout.buildDirectory.file("${releaseName}-${version}.jar").get().asFile
         
-        // 清理并创建临时目录
-        if (tempDir.exists()) {
-            tempDir.deleteDir()
-        }
-        tempDir.mkdirs()
+        // 使用 Java 的 Zip 操作
+        java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(new FileInputStream(originalJar))
+        java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(new FileOutputStream(tempJar))
         
-        copy {
-            from zipTree(bootJarFile)
-            into tempDir
-        }
-        
-        // 删除敏感配置文件
-        delete fileTree("${tempDir}/BOOT-INF/classes") {
-            include 'application.yaml'
-            include 'application.yml'
-        }
-        
-        // 用排除敏感配置的资源替换原资源
-        copy {
-            from releaseProcessResources.outputs.files
-            into "${tempDir}/BOOT-INF/classes"
+        java.util.zip.ZipEntry entry
+        while ((entry = zis.getNextEntry()) != null) {
+            String name = entry.getName()
+            // 跳过敏感配置文件（精确匹配，处理不同系统的路径分隔符）
+            if (name.endsWith('/application.yaml') || name.endsWith('/application.yml')) {
+                // 保留 application-example.yaml
+                if (!name.contains('example')) {
+                    continue
+                }
+            }
+            zos.putNextEntry(entry)
+            zos.write(zis.readAllBytes())
+            zos.closeEntry()
         }
         
-        // 重新打包为 jar
-        def releaseJar = layout.buildDirectory.file("${releaseName}-${version}.jar").get().asFile
-        ant.zip(destfile: releaseJar.absolutePath, basedir: tempDir)
-    }
-    
-    // 复制发布用的 jar
-    from(layout.buildDirectory.file("${releaseName}-${version}.jar")) {
+        zis.close()
+        zos.close()
+        
+        tempJar
+    }) {
         into 'lib'
     }
     
@@ -144,15 +138,15 @@ tasks.register('release', Zip) {
         into 'resources'
     }
     
-    // 创建启动脚本
-    from('src/main/dist') {
+    // 复制启动脚本
+    from("${layout.buildDirectory.get()}/distributions/scripts") {
         include 'start.bat'
         include 'start.sh'
         include 'README.txt'
     }
 }
 
-// 3. 创建简化版启动脚本（Windows）
+// 创建简化版启动脚本
 tasks.register('createStartScripts') {
     group = 'distribution'
     doLast {
@@ -216,12 +210,4 @@ tasks.register('createStartScripts') {
             "\r\n" +
             "更多信息请查看项目文档。\r\n"
     }
-}
-
-// 让 release 任务依赖创建脚本
-release.dependsOn 'createStartScripts'
-release.from("${layout.buildDirectory.get()}/distributions/scripts") {
-    include 'start.bat'
-    include 'start.sh'
-    include 'README.txt'
 }
