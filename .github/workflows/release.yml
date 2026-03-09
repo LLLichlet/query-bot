@@ -58,6 +58,7 @@ jobs:
             - ✅ 午时游戏 俄罗斯轮盘 (`/highnoon`)
             - ✅ PJSK 谱面查询 (`/chart`)
             - ✅ MCMOD 查询 (`/mcmod`)
+            - ✅ LaTeX 公式渲染 (`/latex`)
             - ✅ 随机回复 (AI 自动回复)
             - ✅ 状态控制 (`/admin`)
             
@@ -70,6 +71,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/distributions/Anemone-java-1.0.0.zip
+          asset_path: ./build/distributions/Anemone-java-1.1.0.zip
           asset_name: Anemone-java-${{ github.ref_name }}.zip
           asset_content_type: application/zip
