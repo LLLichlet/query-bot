@@ -6,7 +6,7 @@
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://openjdk.org/)
 [![Gradle](https://img.shields.io/badge/Gradle-8.5-blue)](https://gradle.org/)
 
-**项目状态**: 稳定版 (v1.1.0) | 功能对齐 Python v2.4.0 + LaTeX 渲染，已成为主要维护版本
+**项目状态**: 稳定版 (v1.1.1) | 功能对齐 Python v2.4.0 + LaTeX 渲染，已成为主要维护版本
 
 ## 简介
 
@@ -241,7 +241,7 @@ public class MyMessageHandler extends MessageHandler {
 
 ```powershell
 # 1. 下载并解压
-Expand-Archive Anemone-java-v1.0.0.zip -DestinationPath Anemone-java
+Expand-Archive Anemone-java-v1.1.1.zip -DestinationPath Anemone-java
 cd Anemone-java
 
 # 2. 复制并编辑配置
@@ -261,7 +261,7 @@ cd Anemone-java
 ./gradlew release
 ```
 
-构建输出：`build/distributions/Anemone-java-1.0.0.zip`
+构建输出：`build/distributions/Anemone-java-1.1.1.zip`
 
 
 ## 许可证

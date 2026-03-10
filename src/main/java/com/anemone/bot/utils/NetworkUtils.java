@@ -1,8 +1,6 @@
 package com.anemone.bot.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -11,6 +9,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 网络请求工具类
@@ -98,7 +99,7 @@ public class NetworkUtils {
                 logger.warn("GET request failed: {} - HTTP {}", url, response.statusCode());
                 return null;
             }
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException e) {
             logger.error("GET request error: {} - {}", url, e.getMessage());
             return null;
         }
@@ -173,7 +174,7 @@ public class NetworkUtils {
                 logger.warn("POST request failed: {} - HTTP {}", url, response.statusCode());
                 return null;
             }
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException e) {
             logger.error("POST request error: {} - {}", url, e.getMessage());
             return null;
         }
@@ -327,7 +328,7 @@ public class NetworkUtils {
                 logger.warn("GET bytes request failed: {} - HTTP {}", url, response.statusCode());
                 return null;
             }
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException e) {
             logger.error("GET bytes request error: {} - {}", url, e.getMessage());
             return null;
         }

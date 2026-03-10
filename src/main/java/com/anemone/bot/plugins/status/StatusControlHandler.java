@@ -1,5 +1,13 @@
 package com.anemone.bot.plugins.status;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.anemone.bot.base.Result;
 import com.anemone.bot.config.BotConfig;
 import com.anemone.bot.handler.PluginHandler;
@@ -11,13 +19,8 @@ import com.anemone.bot.service.BanService;
 import com.anemone.bot.service.PluginRegistry;
 import com.mikuac.shiro.core.Bot;
 import com.mikuac.shiro.dto.event.message.AnyMessageEvent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 状态控制处理器
@@ -174,7 +177,7 @@ public class StatusControlHandler extends PluginHandler {
         try {
             java.lang.reflect.Method setter = BotConfig.class.getMethod(setterName, boolean.class);
             setter.invoke(config, !currentValue);
-        } catch (Exception e) {
+        } catch (IllegalAccessException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
             // 如果找不到 setter，使用直接字段访问（不推荐，但作为备选）
             logger.warn("Failed to toggle feature via setter, trying direct field access");
         }

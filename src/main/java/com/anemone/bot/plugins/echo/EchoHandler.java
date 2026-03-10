@@ -1,16 +1,19 @@
 package com.anemone.bot.plugins.echo;
 
+import java.util.Objects;
+import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.anemone.bot.config.BotConfig;
 import com.anemone.bot.handler.MessageHandler;
 import com.anemone.bot.service.PluginRegistry;
 import com.mikuac.shiro.core.Bot;
 import com.mikuac.shiro.dto.event.message.AnyMessageEvent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
-import java.util.Random;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 复读插件
@@ -57,7 +60,7 @@ public class EchoHandler extends MessageHandler {
         }
         
         // 不处理自己的消息
-        if (event.getUserId() == event.getSelfId()) {
+        if (Objects.equals(event.getUserId(), event.getSelfId())) {
             return CompletableFuture.completedFuture(null);
         }
         
@@ -90,7 +93,7 @@ public class EchoHandler extends MessageHandler {
         boolean isReverse = random.nextDouble() < reverseProb;
         
         // 处理消息
-        String reply = isReverse ? reverseString(message) : message;
+        String reply = isReverse ? reverseString(message.replaceAll("\\[CQ:[^\\]]+\\]", "")) : message;
         
         // 发送回复
         return send(bot, event, reply);

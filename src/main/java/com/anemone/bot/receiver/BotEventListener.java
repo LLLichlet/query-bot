@@ -1,5 +1,15 @@
 package com.anemone.bot.receiver;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
+
 import com.anemone.bot.config.BotConfig;
 import com.anemone.bot.handler.MessageHandler;
 import com.anemone.bot.handler.PluginHandler;
@@ -9,16 +19,7 @@ import com.mikuac.shiro.annotation.common.Shiro;
 import com.mikuac.shiro.core.Bot;
 import com.mikuac.shiro.dto.event.message.AnyMessageEvent;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-
 import jakarta.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Shiro 事件监听器
@@ -85,7 +86,7 @@ public class BotEventListener {
             handleCommand(bot, event, message);
         } else {
             logger.info("Handling as regular message");
-            handleMessage(bot, event, message);
+            handleMessage(bot, event);
         }
     }
     
@@ -123,7 +124,7 @@ public class BotEventListener {
         }
     }
     
-    private void handleMessage(Bot bot, AnyMessageEvent event, String _message) {
+    private void handleMessage(Bot bot, AnyMessageEvent event) {
         if (messageHandlers == null) {
             messageHandlers = registry.getMessagePlugins(false).stream()
                     .filter(p -> p.getHandler() instanceof MessageHandler)

@@ -1,5 +1,22 @@
 package com.anemone.bot.plugins.pjsk;
 
+import java.awt.image.BufferedImage;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.anemone.bot.config.BotConfig;
 import com.anemone.bot.handler.PluginHandler;
 import com.anemone.bot.service.PluginRegistry;
@@ -7,17 +24,8 @@ import com.anemone.bot.utils.ImageUtils;
 import com.anemone.bot.utils.TextUtils;
 import com.mikuac.shiro.core.Bot;
 import com.mikuac.shiro.dto.event.message.AnyMessageEvent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
-import java.awt.image.BufferedImage;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * PJSK 谱面插件

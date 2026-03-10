@@ -1,9 +1,5 @@
 package com.anemone.bot.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.imageio.ImageIO;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
@@ -14,6 +10,11 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+
+import javax.imageio.ImageIO;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 图片处理工具类
@@ -51,7 +52,7 @@ public class ImageUtils {
                 return ImageIO.read(new ByteArrayInputStream(bytes));
             }
             return null;
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error("Error downloading image from {}: {}", url, e.getMessage());
             return null;
         }

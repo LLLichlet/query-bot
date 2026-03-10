@@ -1,20 +1,23 @@
 package com.anemone.bot.service;
 
-import cn.hutool.json.JSONArray;
-import cn.hutool.json.JSONObject;
-import com.anemone.bot.base.Result;
-import com.anemone.bot.config.BotConfig;
-import com.anemone.bot.protocols.AIServiceProtocol;
-import com.anemone.bot.protocols.ServiceLocator;
-import com.anemone.bot.utils.NetworkUtils;
-import jakarta.annotation.PostConstruct;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import com.anemone.bot.base.Result;
+import com.anemone.bot.config.BotConfig;
+import com.anemone.bot.protocols.AIServiceProtocol;
+import com.anemone.bot.protocols.ServiceLocator;
+import com.anemone.bot.utils.NetworkUtils;
+
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONException;
+import cn.hutool.json.JSONObject;
+import jakarta.annotation.PostConstruct;
 
 /**
  * AI 服务实现 - DeepSeek API 封装
@@ -145,7 +148,7 @@ public class AIService implements AIServiceProtocol {
                 logger.debug("AI response received, length: {}", content.length());
                 return Result.ok(content.trim());
                 
-            } catch (Exception e) {
+            } catch (JSONException e) {
                 logger.error("AI API call failed", e);
                 return Result.err("AI service temporarily unavailable: " + e.getMessage());
             }
