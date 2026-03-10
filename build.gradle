@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.anemone'
-version = '1.1.0'
+version = '1.1.1'
 description = 'Anemone Bot - QQ群聊机器人 (Java版)'
 
 ext.releaseName = 'Anemone-java'
